@@ -89,6 +89,9 @@
     .screen {
       display: none;
       min-height: 100vh;
+      width: 100%;
+      max-width: 100vw;
+      overflow-x: hidden;
       position: relative;
       z-index: 1
     }
@@ -3382,10 +3385,10 @@
 
     .mode-cards {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 24px;
       width: 100%;
-      max-width: 1100px;
+      max-width: 1080px;
     }
 
     .mode-card {
