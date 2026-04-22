@@ -3359,7 +3359,7 @@
     .wt-sub {
       font-family: var(--font-body);
       font-weight: 800;
-      font-size: 13px;
+      font-size: 18px;
       letter-spacing: 4px;
       color: var(--white-dim);
       text-transform: uppercase;
@@ -3367,7 +3367,7 @@
     }
 
     .wt-tagline {
-      font-size: 13px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--white-ghost);
       max-width: 480px;
