@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -35,10 +35,10 @@
   <div id="screen-welcome" class="screen active">
     <div class="mode-select-wrap">
       <div class="welcome-top">
-        <div class="det-strip" style="font-size: 64px; gap: 24px; justify-content: center;">
+        <div class="det-strip" style="font-size: 72px; gap: 24px; justify-content: center;">
           <span style="filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));">🕵️</span>
-          <span style="font-size: 76px; filter: drop-shadow(0 6px 10px rgba(193,18,31,0.2));">📂</span>
-          <span style="font-size: 64px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));">🔍</span>
+          <span style="font-size: 84px; filter: drop-shadow(0 6px 10px rgba(193,18,31,0.2));">📂</span>
+          <span style="font-size: 72px; filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));">🔍</span>
         </div>
       </div>
       <div class="wt-logo">E·RASE</div>
@@ -77,15 +77,15 @@
         style="display:flex;align-items:center;background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:4px 4px 4px 16px;transition:border-color .2s"
         id="name-field-wrap">
         <span
-          style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--white-ghost);white-space:nowrap;flex-shrink:0">🕵️
+          style="font-size:13px;font-weight:800;letter-spacing:2px;color:var(--white-ghost);white-space:nowrap;flex-shrink:0">🕵️
           THÁM TỬ:</span>
         <input id="player-name" value="Thám Tử"
-          style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font-title);font-size:17px;letter-spacing:2px;color:var(--white);padding:8px 12px;caret-color:var(--yellow)"
+          style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:var(--white);padding:8px 12px;caret-color:var(--yellow)"
           placeholder="Nhập tên bạn…"
           onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
           onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'">
       </div>
-      <div style="font-size:11px;font-weight:700;color:var(--white-ghost);margin-top:5px;text-align:center">Tên hiện
+      <div style="font-size:13px;font-weight:700;color:var(--white-ghost);margin-top:5px;text-align:center">Tên hiện
         trên bảng xếp hạng Tự Luyện</div>
     </div>
 
@@ -170,7 +170,7 @@
         </div>
       </div>
       <div class="hb-right">
-        <button class="btn-ch btn-ch-skip" onclick="RoomHost.exitToMenu()" style="font-size:11px;padding:6px 12px">🚪
+        <button class="btn-ch btn-ch-skip" onclick="RoomHost.exitToMenu()" style="font-size:13px;padding:6px 12px">🚪
           Kết thúc</button>
       </div>
     </div>
@@ -184,11 +184,11 @@
         <div class="hwcd-url">Mở file này → Thách Đấu → Học sinh (JOIN) → nhập mã</div>
       </div>
       <div class="hw-players-waiting" id="hw-players-waiting">
-        <div style="font-size:13px;font-weight:700;color:var(--white-ghost)">Chưa có học sinh nào...</div>
+        <div style="font-size:15px;font-weight:700;color:var(--white-ghost)">Chưa có học sinh nào...</div>
       </div>
       <div class="hw-waiting-note" id="hw-waiting-note">Đã có 0 học sinh trong phòng</div>
       <button class="btn-confirm" id="host-start-game-btn" onclick="RoomHost.startGame()"
-        style="padding:13px 36px;font-size:18px;opacity:.4;cursor:not-allowed" disabled>
+        style="padding:13px 36px;font-size:22px;opacity:.4;cursor:not-allowed" disabled>
         ▶ Bắt đầu vụ án!
       </button>
     </div>
@@ -214,8 +214,8 @@
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
             <div class="chq-diff cb-easy" id="host-diff-badge">DỄ</div>
             <div>
-              <div class="chq-case" id="host-case-title" style="font-size:22px"></div>
-              <div class="chq-topic" id="host-topic" style="font-size:13px;color:var(--white-dim)"></div>
+              <div class="chq-case" id="host-case-title" style="font-size:26px"></div>
+              <div class="chq-topic" id="host-topic" style="font-size:15px;color:var(--white-dim)"></div>
             </div>
           </div>
           <div class="ch-problem" id="host-problem-text"></div>
