@@ -43,8 +43,17 @@
       </div>
       <div class="wt-logo">E·RASE</div>
       <div class="wt-sub">🕵️ Thám Tử Dấu Sai</div>
-      <div class="wt-tagline">Tìm ra <strong>nghi phạm làm sai dấu</strong> và sửa lại bằng chứng — trước khi vụ án
-        nguội đi.</div>
+    </div>
+
+    <!-- Name input — dùng cho chế độ Tự Luyện -->
+    <div class="welcome-name-block">
+      <div class="welcome-name-field" id="name-field-wrap">
+        <span class="welcome-name-label">🕵️ THÁM TỬ:</span>
+        <input id="player-name" value="Thám Tử" class="welcome-name-input" placeholder="Nhập tên bạn…"
+          onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
+          onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'">
+      </div>
+      <div class="welcome-name-hint">Tên hiển thị trên bảng xếp hạng Tự Luyện</div>
     </div>
 
     <div class="mode-cards">
@@ -62,32 +71,6 @@
         <div class="mc-desc">Tự mình giải vụ án. HP, combo streak, và bảng xếp hạng cá nhân.</div>
         <div class="mc-badge">🎮 CHẾ ĐỘ CÁ NHÂN</div>
       </div>
-      <!-- PROFILE / BANK -->
-      <div class="mode-card mc-profile" onclick="showScreen('screen-profile');Profile.init()">
-        <div class="mc-icon">📁</div>
-
-        <div class="mc-title">Hồ Sơ</div>
-        <div class="mc-desc">Quản lý ngân hàng đề, xem lịch sử và thống kê kết quả của bạn.</div>
-        <div class="mc-badge" id="bank-mode-badge">📋 NGÂN HÀNG ĐỀ</div>
-      </div>
-    </div>
-
-    <!-- Name input — dùng cho chế độ Tự Luyện -->
-    <div style="width:100%;max-width:400px">
-      <div
-        style="display:flex;align-items:center;background:var(--panel);border:2px solid var(--border);border-radius:12px;padding:4px 4px 4px 16px;transition:border-color .2s"
-        id="name-field-wrap">
-        <span
-          style="font-size:16px;font-weight:800;letter-spacing:2px;color:var(--white-ghost);white-space:nowrap;flex-shrink:0">🕵️
-          THÁM TỬ:</span>
-        <input id="player-name" value="Thám Tử"
-          style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font-title);font-size:20px;letter-spacing:2px;color:var(--white);padding:8px 12px;caret-color:var(--yellow)"
-          placeholder="Nhập tên bạn…"
-          onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
-          onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'">
-      </div>
-      <div style="font-size:16px;font-weight:700;color:var(--white-ghost);margin-top:5px;text-align:center">Tên hiện
-        trên bảng xếp hạng Tự Luyện</div>
     </div>
 
     <div class="welcome-footer">
@@ -95,7 +78,11 @@
       <span class="wf-sep">·</span>
       <span class="wf-link" id="wf-bank-status">Ngân hàng: Mặc định (5 câu)</span>
     </div>
-  </div>
+
+    <button class="profile-fab" id="bank-mode-badge" onclick="showScreen('screen-profile');Profile.init()"
+      aria-label="Mở Hồ sơ">
+      📁
+    </button>
   </div>
 
   <!-- ══ CHALLENGE MODE SCREEN ══ -->

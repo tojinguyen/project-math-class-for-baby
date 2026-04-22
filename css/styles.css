@@ -3396,7 +3396,7 @@ button[disabled].btn-confirm {
     /* ══ MODE SELECT WELCOME ══ */
     .mode-select-wrap {
       width: 100%;
-      max-width: 860px;
+      max-width: 980px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -3445,12 +3445,58 @@ button[disabled].btn-confirm {
       color: var(--yellow)
     }
 
+    .welcome-name-block {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .welcome-name-field {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 4px 4px 4px 16px;
+      transition: border-color .2s;
+    }
+
+    .welcome-name-label {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--white-ghost);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .welcome-name-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      font-family: var(--font-title);
+      font-size: 30px;
+      letter-spacing: 1px;
+      color: var(--white);
+      padding: 8px 12px;
+      caret-color: var(--yellow);
+    }
+
+    .welcome-name-hint {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--white-ghost);
+      margin-top: 8px;
+      text-align: center;
+    }
+
     .mode-cards {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 24px;
       width: 100%;
-      max-width: 1080px;
+      max-width: 760px;
     }
 
     .mode-card {
@@ -3616,6 +3662,34 @@ button[disabled].btn-confirm {
 
     .wf-link:hover {
       color: var(--white-dim)
+    }
+
+    .profile-fab {
+      position: fixed;
+      right: 22px;
+      bottom: 20px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, .55);
+      background: linear-gradient(145deg, #f8f5ea, #efe7d6);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .18);
+      color: #8a7760;
+      font-size: 24px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      z-index: 30;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+
+    .profile-fab:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, .22);
+    }
+
+    .profile-fab:active {
+      transform: translateY(0);
     }
 
     /* detective art strip */
@@ -4639,6 +4713,17 @@ button[disabled].btn-confirm {
     @media(max-width:700px) {
       .mode-cards {
         grid-template-columns: 1fr
+      }
+
+      .welcome-name-input {
+        font-size: 24px;
+      }
+
+      .profile-fab {
+        width: 54px;
+        height: 54px;
+        right: 16px;
+        bottom: 14px;
       }
 
       .ch-main {
