@@ -1,3 +1,15 @@
+/* Nút bắt đầu vụ án (disabled) */
+.btn-confirm[disabled],
+button[disabled].btn-confirm {
+  background: repeating-linear-gradient(135deg, #ececec 0 12px, #f4efe6 12px 24px);
+  color: #b0aeb3 !important;
+  border: 2px dashed var(--red);
+  opacity: 1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  filter: grayscale(0.3);
+  transition: background .2s, color .2s, border .2s;
+}
 :root {
       /* NỀN CHÍNH - Giấy Kraft / Hồ sơ cũ */
       --space: #fdfbf7;
