@@ -1740,7 +1740,7 @@
     }
 
     .ic-label {
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost);
@@ -1766,7 +1766,7 @@
     }
 
     .score-sub {
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost);
@@ -1784,7 +1784,7 @@
     .score-row {
       display: flex;
       justify-content: space-between;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--white-dim);
       border-bottom: 1px solid var(--border);
@@ -2412,7 +2412,7 @@
       gap: 5px;
       padding: 5px 12px;
       border-radius: 50px;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 800;
     }
 
@@ -2464,7 +2464,7 @@
     }
 
     .rs-label {
-      font-size: 11px;
+      font-size: 16px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost);
@@ -2490,7 +2490,7 @@
     }
 
     .res-cases-title {
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost);
@@ -2517,7 +2517,7 @@
       background: var(--space2);
       border: 1.5px solid var(--border);
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       transition: background .15s;
       animation: caseRowIn .3s ease both;
@@ -2576,7 +2576,7 @@
       background: rgba(30, 144, 255, .06);
       border-radius: var(--radius-sm);
       border-left: 3px solid rgba(245, 197, 24, .35);
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--white-dim);
       line-height: 1.8
@@ -2647,7 +2647,7 @@
     .dash-tab {
       padding: 11px 18px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 800;
       letter-spacing: 1px;
       color: var(--white-ghost);
@@ -2689,7 +2689,7 @@
     }
 
     .dp-sub {
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--white-ghost);
       margin-bottom: 18px;
@@ -2717,7 +2717,7 @@
     }
 
     .dp-card-label {
-      font-size: 9px;
+      font-size: 14px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost);
@@ -2746,7 +2746,7 @@
     .dp-table-head {
       background: var(--space2);
       padding: 10px 16px;
-      font-size: 10px;
+      font-size: 14px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost)
@@ -3495,7 +3495,7 @@
     }
 
     .mc-desc {
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--white-dim);
       line-height: 1.6
@@ -3504,7 +3504,7 @@
     .mc-badge {
       padding: 3px 12px;
       border-radius: 50px;
-      font-size: 10px;
+      font-size: 14px;
       font-weight: 800;
       letter-spacing: 1px;
       margin-top: 4px;
@@ -3532,7 +3532,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 12px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--white-ghost);
     }
@@ -3630,7 +3630,7 @@
     }
 
     .ch-timer-label {
-      font-size: 9px;
+      font-size: 14px;
       font-weight: 800;
       letter-spacing: 2px;
       color: var(--white-ghost)
@@ -3695,7 +3695,7 @@
     }
 
     .chq-topic {
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 800;
       color: var(--white-dim)
     }
@@ -3703,7 +3703,7 @@
     .chq-diff {
       padding: 3px 12px;
       border-radius: 50px;
-      font-size: 11px;
+      font-size: 16px;
       font-weight: 800
     }
 
@@ -3958,7 +3958,7 @@
 
     .pr-rank {
       font-family: var(--font-title);
-      font-size: 14px;
+      font-size: 16px;
       color: var(--white-ghost);
       width: 18px;
       flex-shrink: 0;
@@ -3967,7 +3967,7 @@
 
     .pr-name {
       flex: 1;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--white)
     }
@@ -3989,7 +3989,7 @@
       height: 26px;
       border-radius: 6px;
       border: none;
-      font-size: 13px;
+      font-size: 16px;
       cursor: pointer;
       transition: all .12s;
       display: flex;
