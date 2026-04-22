@@ -4648,30 +4648,29 @@
     }
 
     .lobby-header {
-      background: linear-gradient(135deg, #1a0a0a, #2a0808);
-      border-bottom: 2px solid rgba(255, 71, 87, .25);
-      padding: 20px 24px;
+      background: var(--space2);
+      border-bottom: 2px solid var(--border);
+      padding: 28px 24px;
       text-align: center;
       position: relative;
     }
 
     .lobby-logo {
       font-family: var(--font-title);
-      font-size: 28px;
-      letter-spacing: 4px;
-      background: linear-gradient(135deg, #ff4757, #ff6b81);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 4px
+      font-size: 30px;
+      letter-spacing: 2px;
+      color: var(--red);
+      margin-bottom: 6px;
+      text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.5);
     }
 
     .lobby-sub {
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 3px;
-      color: rgba(255, 71, 87, .6);
-      text-transform: uppercase
+      color: var(--white-dim);
+      text-transform: uppercase;
+      opacity: 0.7;
     }
 
     .lobby-body {
