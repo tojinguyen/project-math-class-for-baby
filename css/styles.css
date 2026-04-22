@@ -490,17 +490,17 @@
     /* HUD */
     .game-hud {
       width: 100%;
-      background: rgba(13, 17, 23, 0.95);
+      background: var(--space);
       backdrop-filter: blur(12px);
       border-bottom: 2px solid var(--border);
-      padding: 10px 20px;
+      padding: 12px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
     }
 
     .hud-left {
@@ -581,34 +581,39 @@
     .hud-center {
       display: flex;
       align-items: center;
-      gap: 8px
+      gap: 12px;
+      flex: 1;
+      justify-content: center;
     }
 
     /* Score pill */
     .score-pill {
-      background: var(--space2);
-      border: 2px solid rgba(245, 197, 24, 0.25);
-      border-radius: var(--radius-sm);
-      padding: 6px 16px;
+      background: #fff;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 4px 16px;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      height: 48px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     .sp-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--white-dim)
+      letter-spacing: 1px;
+      color: var(--white-ghost);
+      text-transform: uppercase;
     }
 
     .sp-val {
       font-family: var(--font-title);
-      font-size: 30px;
-      color: var(--cyan);
-      min-width: 44px;
+      font-size: 28px;
+      color: var(--red);
+      min-width: 30px;
       text-align: center;
-      transition: transform .15s
+      transition: transform .15s;
     }
 
     .sp-val.bump {
@@ -631,19 +636,21 @@
 
     /* Streak */
     .streak-pill {
-      border-radius: var(--radius-sm);
-      padding: 6px 14px;
+      border-radius: 12px;
+      padding: 4px 16px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 8px;
       transition: all .3s;
-      min-width: 88px;
+      min-width: 100px;
       justify-content: center;
+      height: 48px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     .streak-pill.s0 {
-      background: var(--space2);
-      border: 2px solid var(--border)
+      background: #fff;
+      border: 2px solid var(--border);
     }
 
     .streak-pill.s1 {
@@ -701,26 +708,33 @@
 
     /* Q badge */
     .q-badge {
-      background: var(--space2);
+      background: #fff;
       border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 6px 14px;
+      border-radius: 12px;
+      padding: 0 16px;
       font-size: 14px;
       font-weight: 800;
       color: var(--white-dim);
       letter-spacing: 1px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     /* Timer */
     .timer-pill {
-      background: var(--space2);
+      background: #fff;
       border: 2px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 5px 12px;
+      border-radius: 12px;
+      padding: 4px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-width: 70px;
+      justify-content: center;
+      min-width: 90px;
+      height: 48px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
 
     .timer-label {
@@ -732,9 +746,10 @@
 
     .timer-val {
       font-family: var(--font-mono);
-      font-size: 22px;
-      color: var(--white);
-      line-height: 1
+      font-size: 20px;
+      color: var(--yellow);
+      line-height: 1.1;
+      font-weight: 700;
     }
 
     .timer-val.warn {
@@ -763,17 +778,21 @@
     }
 
     .btn-eject {
-      background: var(--red-bg);
-      border: 2px solid rgba(255, 71, 87, 0.3);
-      border-radius: var(--radius-sm);
+      background: #fff;
+      border: 2px solid var(--red);
+      border-radius: 10px;
       color: var(--red);
       font-family: var(--font-body);
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12px;
       letter-spacing: 1px;
-      padding: 6px 12px;
+      padding: 8px 16px;
       cursor: pointer;
       transition: all .2s;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .btn-eject:hover {
