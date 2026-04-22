@@ -51,9 +51,22 @@
         <span class="welcome-name-label">🕵️ THÁM TỬ:</span>
         <input id="player-name" value="Thám Tử" class="welcome-name-input" placeholder="Nhập tên bạn…"
           onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
-          onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'">
+          onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'"
+          oninput="XP.renderWelcome()">
       </div>
       <div class="welcome-name-hint">Tên hiển thị trên bảng xếp hạng Tự Luyện</div>
+      
+      <!-- Thêm thanh XP -->
+      <div class="welcome-xp-box" id="welcome-xp-box">
+        <div class="wx-header">
+          <div class="wx-rank" id="wx-rank">🕵️ Thám Tử Mới</div>
+          <div class="wx-text" id="wx-text">100 / 150 XP</div>
+        </div>
+        <div class="wx-bar">
+          <div class="wx-fill" id="wx-fill" style="width: 0%; background: #2ed573;"></div>
+        </div>
+        <div class="wx-next" id="wx-next">Cần 50 XP nữa để lên cấp Điều Tra Viên</div>
+      </div>
     </div>
 
     <div class="mode-cards">
