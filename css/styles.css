@@ -798,13 +798,14 @@
     /* Phase bar */
     .phase-bar {
       width: 100%;
-      background: rgba(22, 27, 37, 0.8);
-      border-bottom: 1px solid var(--border);
-      padding: 8px 20px;
+      background: #fdf8ef; /* Light cream paper color */
+      border-bottom: 2px solid var(--border);
+      padding: 12px 20px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 15px;
       flex-wrap: wrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     .phase-tag {
@@ -820,14 +821,14 @@
     }
 
     .phase-tag.ph-detect {
-      background: var(--red-bg);
-      border: 1.5px solid rgba(255, 71, 87, 0.4);
+      background: rgba(193, 18, 31, 0.12);
+      border: 1.5px solid rgba(193, 18, 31, 0.3);
       color: var(--red)
     }
 
     .phase-tag.ph-correct {
-      background: var(--yellow-bg);
-      border: 1.5px solid rgba(255, 211, 42, 0.4);
+      background: rgba(180, 83, 9, 0.12);
+      border: 1.5px solid rgba(180, 83, 9, 0.3);
       color: var(--yellow)
     }
 
@@ -857,7 +858,11 @@
       font-size: 15px;
       font-weight: 700;
       color: var(--white-dim);
-      flex: 1
+      flex: 1;
+      padding: 6px 14px;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 8px;
+      border: 1px dashed rgba(0, 0, 0, 0.1);
     }
 
     .phase-desc strong {
@@ -875,7 +880,8 @@
       font-size: 12px;
       font-weight: 800;
       letter-spacing: 1px;
-      color: var(--white-ghost)
+      color: var(--white-dim); /* Darker than ghost for visibility */
+      opacity: 0.8;
     }
 
     .pip {
@@ -3791,12 +3797,13 @@
 
     /* Phase display for challenge */
     .ch-phase-strip {
-      padding: 10px 20px;
-      background: rgba(12, 10, 8, .8);
-      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      background: #fdf8ef;
+      border-bottom: 2px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
     /* Teacher control bar */
@@ -5481,10 +5488,11 @@
     }
 
     .sa-label {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 800;
       letter-spacing: 1px;
-      color: var(--white-ghost)
+      color: var(--white-dim);
+      opacity: 0.8;
     }
 
     /* Waiting for others overlay */
