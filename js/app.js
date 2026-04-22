@@ -122,10 +122,43 @@
     }
     function showFB(id, html, type) {
       const el = document.getElementById(id); el.className = `feedback-card show fc-${type}`; el.innerHTML = html;
+      applyMathFormatting(el);
     }
     function hideFB(id) { document.getElementById(id).className = 'feedback-card' }
     function fmt(s) { return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` }
     function pct(a, b) { return b ? Math.round(a / b * 100) : 0 }
+    function formatMathText(text) {
+      const escaped = String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      const withFractions = escaped.replace(
+        /([−-]?[A-Za-z0-9.]+)\s*\/\s*([−-]?[A-Za-z0-9.]+)/g,
+        '<span class="math-frac"><span class="math-frac-top">$1</span><span class="math-frac-bottom">$2</span></span>'
+      );
+      return withFractions.replace(
+        /([A-Za-z0-9.]+)\s*\^\s*([−-]?[A-Za-z0-9.]+)/g,
+        '$1<sup class="math-sup">$2</sup>'
+      );
+    }
+    function applyMathFormatting(rootEl) {
+      if (!rootEl) return;
+      const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, null);
+      const targets = [];
+      let node = walker.nextNode();
+      while (node) {
+        const txt = node.nodeValue || '';
+        if (/[\/^]/.test(txt) && txt.trim()) targets.push(node);
+        node = walker.nextNode();
+      }
+      targets.forEach(textNode => {
+        const html = formatMathText(textNode.nodeValue || '');
+        if (!html || html === textNode.nodeValue) return;
+        const wrap = document.createElement('span');
+        wrap.innerHTML = html;
+        textNode.replaceWith(wrap);
+      });
+    }
 
     /* ══ TIMER ══ */
     function startTimer() { clearInterval(S.timer); S.elapsed = 0; tickTimer(); S.timer = setInterval(tickTimer, 1000) }
@@ -247,7 +280,9 @@
       document.getElementById('paper-title').textContent = `VỤ ÁN ÁN #${pad}`;
       document.getElementById('paper-qnum').textContent = `Điều tra: ${q.topic}`;
       document.getElementById('paper-q-score').textContent = '—';
-      document.getElementById('q-text-main').innerHTML = q.problem;
+      const mainProblem = document.getElementById('q-text-main');
+      mainProblem.innerHTML = q.problem;
+      applyMathFormatting(mainProblem);
       document.getElementById('hint-content').innerHTML = q.hint || 'Chú ý dấu khi chuyển vế.';
       document.getElementById('rule-content').innerHTML = q.rule || 'Mỗi hạng tử chuyển vế phải đổi dấu!';
 
@@ -272,7 +307,7 @@
         const lbl = document.createElement('div'); lbl.className = 'step-label'; lbl.textContent = step.label;
         const tks = document.createElement('div'); tks.className = 'step-tokens';
         step.tokens.forEach(tk => {
-          const el = document.createElement('span'); el.className = 'token'; el.id = `tk-${tk.id}`; el.textContent = tk.tx;
+          const el = document.createElement('span'); el.className = 'token'; el.id = `tk-${tk.id}`; el.innerHTML = formatMathText(tk.tx);
           if (tk.tp === 'op') el.classList.add('op');
           if (tk.tp === 'eq') el.classList.add('eq');
           if (tk.tp === 'plain') el.classList.add('plain');
@@ -304,6 +339,8 @@
       const box = document.getElementById('correction-box'); box.classList.add('show'); S.cStart = Date.now();
       document.getElementById('cb-question-text').innerHTML = q.correction.question;
       document.getElementById('cb-wrong-expr').innerHTML = q.correction.wrongExpr;
+      applyMathFormatting(document.getElementById('cb-question-text'));
+      applyMathFormatting(document.getElementById('cb-wrong-expr'));
 
       const area = document.getElementById('correction-input-area'); area.innerHTML = '';
       const type = q.correction.type;
@@ -1190,7 +1227,9 @@
         document.getElementById('host-q-num').textContent = `VỤ ÁN ${idx + 1}/${this.activeQuestions.length}`;
         document.getElementById('host-case-title').textContent = `VỤ ÁN #${pad}`;
         document.getElementById('host-topic').textContent = `Điều tra: ${q.topic}`;
-        document.getElementById('host-problem-text').innerHTML = q.problem;
+        const hostProblem = document.getElementById('host-problem-text');
+        hostProblem.innerHTML = q.problem;
+        applyMathFormatting(hostProblem);
         document.getElementById('host-btn-next').disabled = true;
         document.getElementById('host-btn-skip').style.display = 'none';
         document.getElementById('hcb-instruction').textContent = 'HS đang tìm nghi phạm...';
@@ -1219,7 +1258,7 @@
           const tks = document.createElement('div'); tks.className = 'step-tokens';
           step.tokens.forEach(tk => {
             const el = document.createElement('span');
-            el.className = 'token'; el.id = `htk-${tk.id}`; el.textContent = tk.tx;
+            el.className = 'token'; el.id = `htk-${tk.id}`; el.innerHTML = formatMathText(tk.tx);
             if (tk.tp === 'op') el.classList.add('op');
             if (tk.tp === 'eq') el.classList.add('eq');
             tks.appendChild(el);
@@ -1250,6 +1289,8 @@
         // Show correction on host
         document.getElementById('host-corr-q').innerHTML = q.correction.question;
         document.getElementById('host-corr-wrong').innerHTML = q.correction.wrongExpr;
+        applyMathFormatting(document.getElementById('host-corr-q'));
+        applyMathFormatting(document.getElementById('host-corr-wrong'));
         document.getElementById('host-correction').classList.add('show');
         document.getElementById('host-btn-skip').style.display = 'none';
         document.getElementById('hcb-instruction').textContent = 'HS đang chọn cách sửa...';
@@ -1498,7 +1539,9 @@
 
         const pad = String(qIdx + 1).padStart(3, '0');
         document.getElementById('student-case-title').textContent = `VỤ ÁN #${pad}  (${qIdx + 1}/${total})`;
-        document.getElementById('student-problem').innerHTML = q.problem;
+        const studentProblem = document.getElementById('student-problem');
+        studentProblem.innerHTML = q.problem;
+        applyMathFormatting(studentProblem);
         document.getElementById('student-hint').innerHTML = q.hint || '';
 
         this.phase = 'detect';
@@ -1519,7 +1562,7 @@
           const tks = document.createElement('div'); tks.className = 'step-tokens';
           step.tokens.forEach(tk => {
             const el = document.createElement('span');
-            el.className = 'token'; el.id = `stk-${tk.id}`; el.textContent = tk.tx;
+            el.className = 'token'; el.id = `stk-${tk.id}`; el.innerHTML = formatMathText(tk.tx);
             if (tk.tp === 'op') el.classList.add('op');
             if (tk.tp === 'eq') el.classList.add('eq');
             if (tk.tp === 'plain') el.classList.add('plain');
@@ -1608,6 +1651,8 @@
         this._setPips(2, 0, 'c');
         document.getElementById('student-corr-q').innerHTML = corr.question;
         document.getElementById('student-corr-wrong').innerHTML = corr.wrongExpr;
+        applyMathFormatting(document.getElementById('student-corr-q'));
+        applyMathFormatting(document.getElementById('student-corr-wrong'));
         document.getElementById('student-correction').classList.add('show');
         document.getElementById('student-feedback-correct').className = 'student-feedback';
         document.getElementById('student-btn-correct').disabled = false;
@@ -1694,6 +1739,7 @@
         const el = document.getElementById(id);
         el.className = `student-feedback show sf-${type}`;
         el.innerHTML = `<div class="sff-icon">${icon}</div><div class="sff-body">${html}</div>`;
+        applyMathFormatting(el);
       },
 
       _setStudentPhaseUI(phase) {
