@@ -47,26 +47,28 @@
 
     <!-- Name input — dùng cho chế độ Tự Luyện -->
     <div class="welcome-name-block">
-      <div class="welcome-name-field" id="name-field-wrap">
-        <span class="welcome-name-label">🕵️ THÁM TỬ:</span>
-        <input id="player-name" value="Thám Tử" class="welcome-name-input" placeholder="Nhập tên bạn…"
-          onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
-          onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'"
-          oninput="XP.renderWelcome()">
+      <div class="welcome-name-field" id="name-field-wrap" style="flex-direction: column; align-items: stretch; padding: 12px 16px;">
+        <div style="display: flex; align-items: center; width: 100%; border-bottom: 1px dashed var(--border); padding-bottom: 8px; margin-bottom: 8px;">
+          <span class="welcome-name-label">🕵️ THÁM TỬ:</span>
+          <input id="player-name" value="Thám Tử" class="welcome-name-input" placeholder="Nhập tên bạn…"
+            style="flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-body); font-weight: 800; font-size: 20px; color: var(--white); padding: 8px 12px; caret-color: var(--cyan);"
+            onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
+            onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'"
+            oninput="XP.renderWelcome()">
+        </div>
+        
+        <div id="welcome-xp-box" style="width: 100%;">
+          <div class="wx-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div class="wx-rank" id="wx-rank" style="font-family: var(--font-title); font-size: 16px;">🕵️ Thám Tử Mới</div>
+            <div class="wx-text" id="wx-text" style="font-size: 14px; font-weight: 700; color: var(--white-ghost);">100 / 150 XP</div>
+          </div>
+          <div class="wx-bar" style="height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-bottom: 6px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+            <div class="wx-fill" id="wx-fill" style="height: 100%; width: 0%; background: #2ed573; transition: width 0.4s ease, background 0.4s ease;"></div>
+          </div>
+          <div class="wx-next" id="wx-next" style="font-size: 12px; color: var(--white-ghost); text-align: right; font-style: italic;">Cần 50 XP nữa để lên cấp Điều Tra Viên</div>
+        </div>
       </div>
       <div class="welcome-name-hint">Tên hiển thị trên bảng xếp hạng Tự Luyện</div>
-      
-      <!-- Thêm thanh XP -->
-      <div class="welcome-xp-box" id="welcome-xp-box">
-        <div class="wx-header">
-          <div class="wx-rank" id="wx-rank">🕵️ Thám Tử Mới</div>
-          <div class="wx-text" id="wx-text">100 / 150 XP</div>
-        </div>
-        <div class="wx-bar">
-          <div class="wx-fill" id="wx-fill" style="width: 0%; background: #2ed573;"></div>
-        </div>
-        <div class="wx-next" id="wx-next">Cần 50 XP nữa để lên cấp Điều Tra Viên</div>
-      </div>
     </div>
 
     <div class="mode-cards">
