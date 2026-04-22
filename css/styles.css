@@ -108,13 +108,14 @@
     /* ─── TOAST ─── */
     #toast-container {
       position: fixed;
-      top: 20px;
+      top: 70px;
       right: 20px;
-      z-index: 9999;
+      z-index: 90;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      pointer-events: none
+      gap: 14px;
+      pointer-events: none;
+      max-width: 90vw;
     }
 
     .toast {
@@ -4892,7 +4893,7 @@
       justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 100;
+      z-index: 10001;
     }
 
     .hb-left {
