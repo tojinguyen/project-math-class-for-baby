@@ -4880,9 +4880,9 @@
     }
 
     .host-bar {
-      /* Nền sáng hơn, cảm giác giấy hồ sơ */
-      background: linear-gradient(90deg, var(--space3) 0%, var(--space2) 100%);
-      border-bottom: 2px solid rgba(255, 71, 87, .18);
+      /* Nền giấy sáng hoàn toàn, không còn nền tối */
+      background: var(--space2);
+      border-bottom: 2px solid rgba(255, 71, 87, .13);
       padding: 8px 20px;
       display: flex;
       align-items: center;
