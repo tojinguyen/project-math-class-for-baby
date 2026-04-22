@@ -176,8 +176,8 @@
     @media (min-width: 900px) {
       .screen {
         min-height: 100vh;
-        height: 100vh;
-        overflow-y: hidden;
+        /* height: 100vh; */
+        /* overflow-y: hidden; */
       }
       #screen-welcome {
         height: 100vh;
@@ -503,7 +503,10 @@
     #screen-game {
       flex-direction: column;
       align-items: center;
-      padding: 0
+      padding: 0;
+      min-height: 100vh;
+      height: auto;
+      overflow-y: auto;
     }
 
     /* HUD */
