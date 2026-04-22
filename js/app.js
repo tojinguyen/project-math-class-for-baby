@@ -233,6 +233,25 @@ function applyMathFormatting(rootEl) {
     textNode.replaceWith(wrap);
   });
 }
+function updateQScore() {
+  if (S.done) return;
+  let maxD = 0;
+  if (S.phase === 'detect') {
+    maxD = S.dAttempt === 0 ? Math.round(10 * S.comboMult) : (S.dAttempt === 1 ? Math.round(5 * S.comboMult) : 0);
+  } else {
+    maxD = S.dScore;
+  }
+  let maxC = 0;
+  if (S.cAttempt === 0) maxC = Math.round(10 * S.comboMult);
+  else if (S.cAttempt === 1) maxC = Math.round(5 * S.comboMult);
+  
+  let bonus = 0;
+  if (S.phase === 'detect' && S.dAttempt === 0) bonus = 5;
+  else if (S.phase === 'correct' && S.dScore > 0 && S.cAttempt === 0) bonus = 5;
+
+  const qsEl = document.getElementById('paper-q-score');
+  if (qsEl) qsEl.textContent = maxD + maxC + bonus;
+}
 
 /* ══ TIMER ══ */
 function startTimer() { clearInterval(S.timer); S.elapsed = 0; tickTimer(); S.timer = setInterval(tickTimer, 1000) }
@@ -353,7 +372,7 @@ function renderQ(idx) {
   document.getElementById('progress-fill').style.width = `${(idx / S.activeQuestions.length) * 100}%`;
   document.getElementById('paper-title').textContent = `VỤ ÁN ÁN #${pad}`;
   document.getElementById('paper-qnum').textContent = `Điều tra: ${q.topic}`;
-  document.getElementById('paper-q-score').textContent = '—';
+  updateQScore();
   const mainProblem = document.getElementById('q-text-main');
   mainProblem.innerHTML = q.problem;
   applyMathFormatting(mainProblem);
@@ -442,6 +461,7 @@ function setCorrectPhase(q) {
   }
   document.getElementById('btn-correct').disabled = false;
   setPips('c', 2, 0); hideFB('feedback-correction');
+  updateQScore();
   setTimeout(() => box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 150);
 }
 
@@ -556,6 +576,7 @@ const Game = {
       showFB('feedback-main',
         `<span class="fc-icon">❌</span><div class="fc-body"><strong>${msg}</strong><br><em style="color:var(--white-ghost)">💡 Gợi ý: xem kỹ bước chuyển vế — dấu có bị giữ nguyên không?</em></div>`, 'wrong');
       document.getElementById('btn-detect').disabled = S.selected.size === 0;
+      updateQScore();
     } else {
       q.errTokens.forEach(t => { const e = document.getElementById(`tk-${t}`); if (e) { e.classList.remove('selected'); e.classList.add('revealed-error'); } });
       S.analytics.dAttempts[S.qIdx] = 'X';
@@ -568,6 +589,7 @@ const Game = {
         `<div class="fc-rule">${q.rule}</div>` +
         `<button class="btn-next warn" onclick="Game.proceedToCorrection()">Vẫn thử sửa → 🔧</button>` +
         `</div>`, 'warn');
+      updateQScore();
     }
   },
 
@@ -634,6 +656,7 @@ const Game = {
       if (ctype === 'symbol') q.correction.symbols.forEach(s => { const b = document.getElementById('sym-' + s.charCodeAt(0)); if (b) b.className = 'sym-key'; });
       document.getElementById('btn-correct').disabled = false;
       showFB('feedback-correction', `<span class="fc-icon">❌</span><div class="fc-body"><strong>Sai rồi — còn 1 lần nữa! 😅</strong><br><em style="color:var(--white-ghost)">Xem gợi ý bên phải và thử lại!</em></div>`, 'wrong');
+      updateQScore();
     } else {
       if (ctype === 'symbol') q.correction.symbols.forEach(s => { const b = document.getElementById('sym-' + s.charCodeAt(0)); if (b) b.className = 'sym-key' + (s === q.correction.correct ? ' correct reveal' : ''); });
       else if (ctype === 'mc') { const c = document.getElementById('mco-' + q.correction.correct); if (c) c.className = 'mc-opt correct'; }
