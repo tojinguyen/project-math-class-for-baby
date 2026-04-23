@@ -1686,11 +1686,15 @@ const RoomHost = {
       p.score += pts; p.cAnswered = true;
       p.conn.send({ type: 'correct_result', correct: true, pts, exp: q.correction.exp, cAttempt: p.cAttempt });
     } else if (p.cAttempt < 2) {
-      p.conn.send({ type: 'correct_result', correct: false, again: true, cAttempt: p.cAttempt });
+      pts = -5;
+      p.score += pts;
+      p.conn.send({ type: 'correct_result', correct: false, again: true, pts, cAttempt: p.cAttempt });
     } else {
       p.cAnswered = true;
+      pts = -5;
+      p.score += pts;
       const disp = q.correction.displayCorrect || q.correction.correct || (q.correction.correctAnswers ? q.correction.correctAnswers[0] : '?');
-      p.conn.send({ type: 'correct_result', correct: false, again: false, answer: disp, exp: q.correction.exp, cAttempt: p.cAttempt });
+      p.conn.send({ type: 'correct_result', correct: false, again: false, pts, answer: disp, exp: q.correction.exp, cAttempt: p.cAttempt });
     }
     this._renderScoreboard();
     this._updateAnsProgress();
@@ -2264,19 +2268,23 @@ const RoomStudent = {
         document.getElementById('waiting-overlay').classList.add('show');
       }, 2000);
     } else if (data.again) {
+      if (data.pts) { this.score += data.pts; this._updateScore(); }
       this.mcSel = null;
       const area = document.getElementById('student-corr-input');
       area.querySelectorAll('.sym-key').forEach(b => b.className = 'sym-key');
       area.querySelectorAll('.mc-opt').forEach(b => b.className = 'mc-opt');
-      this._showStudentFB('correct', '❌', '<strong>Chưa đúng — còn 1 lần!</strong>', 'wrong');
+      const msg = data.pts ? `<strong>Chưa đúng — còn 1 lần!</strong><br><em style="color:var(--red)">${data.pts} điểm</em>` : '<strong>Chưa đúng — còn 1 lần!</strong>';
+      this._showStudentFB('correct', '❌', msg, 'wrong');
       document.getElementById('student-btn-correct').disabled = true;
     } else {
+      if (data.pts) { this.score += data.pts; this._updateScore(); }
+      const msg = data.pts ? `<em style="color:var(--red)">${data.pts} điểm</em>` : '';
       this._showStudentFB('correct', '💔',
-        `<strong>Đáp án đúng là: <em style="color:var(--yellow)">${data.answer || '?'}</em></strong><div class="fc-explain">${data.exp || ''}</div>`, 'wrong');
+        `<strong>Đáp án đúng là: <em style="color:var(--yellow)">${data.answer || '?'}</em></strong><br>${msg}<div class="fc-explain">${data.exp || ''}</div>`, 'wrong');
       setTimeout(() => {
         document.getElementById('wo-title').textContent = '⏳ Chờ vụ án tiếp theo...';
         document.getElementById('wo-sub').textContent = 'Lần này chưa sửa được đâu nhé!';
-        document.getElementById('wo-pts').textContent = 0;
+        document.getElementById('wo-pts').textContent = data.pts || 0;
         document.getElementById('waiting-overlay').classList.add('show');
       }, 2000);
     }
