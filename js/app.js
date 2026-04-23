@@ -1703,7 +1703,7 @@ const RoomHost = {
     const allDone = this.phase === 'detect'
       ? players.every(p => p.answered || p.dAttempt >= 2)
       : players.every(p => p.cAnswered || p.cAttempt >= 2);
-    if (allDone && players.length > 0) {
+    if (allDone) {
       document.getElementById('hcb-instruction').innerHTML = '<strong style="color:var(--green)">✅ Tất cả HS đã trả lời!</strong>';
       if (this.phase === 'detect') {
         document.getElementById('host-btn-skip').style.display = 'inline-flex';
@@ -1738,7 +1738,10 @@ const RoomHost = {
     const hostProblem = document.getElementById('host-problem-text');
     hostProblem.innerHTML = q.problem;
     applyMathFormatting(hostProblem);
-    document.getElementById('host-btn-next').disabled = true;
+    const btnNext = document.getElementById('host-btn-next');
+    btnNext.textContent = 'Vụ tiếp ▶';
+    btnNext.onclick = () => this.nextCase();
+    btnNext.disabled = true;
     document.getElementById('host-btn-skip').style.display = 'none';
     document.getElementById('hcb-instruction').textContent = 'HS đang tìm nghi phạm...';
 
@@ -1777,18 +1780,26 @@ const RoomHost = {
 
   revealAnswer() {
     const q = this.activeQuestions[this.qIdx];
-    q.errTokens.forEach(t => {
-      const e = document.getElementById(`htk-${t}`);
-      if (e) { e.classList.add('revealed-error'); }
-    });
-    // Show rule + explanation
-    const fb = document.getElementById('host-feedback');
-    fb.className = 'ch-feedback-big show fc-warn';
-    fb.innerHTML = `<div class="cfb-icon">💡</div><div class="cfb-text"><strong>Đây là dấu bị làm sai!</strong><div class="cfb-rule">${q.rule}</div></div>`;
-    applyMathFormatting(fb);
-    // Notify students
-    this._broadcast({ type: 'reveal_detect', errTokens: q.errTokens, rule: q.rule });
-    document.getElementById('host-btn-skip').style.display = 'inline-flex';
+    if (this.phase === 'detect') {
+      q.errTokens.forEach(t => {
+        const e = document.getElementById(`htk-${t}`);
+        if (e) { e.classList.add('revealed-error'); }
+      });
+      const fb = document.getElementById('host-feedback');
+      fb.className = 'ch-feedback-big show fc-warn';
+      fb.innerHTML = `<div class="cfb-icon">💡</div><div class="cfb-text"><strong>Đây là dấu bị làm sai!</strong><div class="cfb-rule">${q.rule}</div></div>`;
+      applyMathFormatting(fb);
+      this._broadcast({ type: 'reveal_detect', errTokens: q.errTokens, rule: q.rule });
+      document.getElementById('host-btn-skip').style.display = 'inline-flex';
+    } else {
+      const disp = q.correction.displayCorrect || q.correction.correct || (q.correction.correctAnswers ? q.correction.correctAnswers[0] : '?');
+      const fb = document.getElementById('host-feedback');
+      fb.className = 'ch-feedback-big show fc-correct';
+      fb.innerHTML = `<div class="cfb-icon">✅</div><div class="cfb-text"><strong>Cách sửa đúng:</strong> <span class="math-tex">${disp}</span><div class="cfb-rule">${q.correction.exp || ''}</div></div>`;
+      applyMathFormatting(fb);
+      this._broadcast({ type: 'reveal_correct', answer: disp, exp: q.correction.exp });
+      document.getElementById('host-btn-next').disabled = false;
+    }
   },
 
   moveToCorrection() {
@@ -2044,6 +2055,9 @@ const RoomStudent = {
       case 'reveal_detect':
         this._revealDetect(data.errTokens, data.rule);
         break;
+      case 'reveal_correct':
+        this._revealCorrect(data.answer, data.exp);
+        break;
       case 'game_end':
         this._showGameEnd();
         break;
@@ -2271,6 +2285,11 @@ const RoomStudent = {
       if (e) { e.classList.remove('selected'); e.classList.add('revealed-error'); }
     });
     this._showStudentFB('detect', '💡', `<strong>GV đã hiện đáp án!</strong><div class="fc-rule">${rule}</div>`, 'wait');
+  },
+
+  _revealCorrect(answer, exp) {
+    this._showStudentFB('correct', '💡', `<strong>GV đã hiện đáp án!</strong><br>Đáp án: <em style="color:var(--yellow)">${answer}</em><div class="fc-explain">${exp || ''}</div>`, 'wait');
+    document.getElementById('student-btn-correct').disabled = true;
   },
 
   _showGameEnd() {
