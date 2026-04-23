@@ -1283,13 +1283,6 @@ const Profile = {
     const bank = window._bankQuestions || null;
     const bankCount = bank ? bank.length : 0;
     document.getElementById('ps-bank-count').innerHTML = `${bankCount}<span> câu</span>`;
-    
-    const profile = await XP.getProfile(S.name);
-    if (!profile) return;
-
-    document.getElementById('ps-games').innerHTML = `${profile.total_cases || 0}<span> ván</span>`;
-    document.getElementById('ps-best').innerHTML = `${profile.best_streak || 0}<span> combo</span>`;
-    document.getElementById('ps-acc').innerHTML = `${profile.perfect_cases || 0}<span> vụ 3⭐</span>`;
   },
 
   renderBank() {
