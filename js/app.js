@@ -1281,7 +1281,7 @@ const Profile = {
 
   async renderStats() {
     const bank = window._bankQuestions || null;
-    const bankCount = bank ? bank.length : '—';
+    const bankCount = bank ? bank.length : 0;
     document.getElementById('ps-bank-count').innerHTML = `${bankCount}<span> câu</span>`;
     
     const profile = await XP.getProfile(S.name);
@@ -1302,7 +1302,7 @@ const Profile = {
     if (!bank || !bank.length) {
       emptyEl.style.display = 'block'; listEl.innerHTML = ''; clearBtn.style.display = 'none';
       countLbl.textContent = bank === null ? 'Đang tải từ Database...' : 'Ngân hàng trống. Upload file JSON để bắt đầu.';
-      document.getElementById('ps-bank-count').innerHTML = '—<span> câu</span>';
+      document.getElementById('ps-bank-count').innerHTML = '0<span> câu</span>';
       return;
     }
     emptyEl.style.display = 'none'; clearBtn.style.display = 'inline-flex';
