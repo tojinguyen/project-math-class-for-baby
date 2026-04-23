@@ -190,6 +190,9 @@ const XP = {
     if (!profiles[playerName]) profiles[playerName] = { xp: 0 };
     return profiles[playerName];
   },
+  saveProfile(playerName, xpAdd) {
+    const profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}');
+    if (!profiles[playerName]) profiles[playerName] = { xp: 0 };
     profiles[playerName].xp += xpAdd;
     localStorage.setItem('erase_profiles', JSON.stringify(profiles));
     const devId = this.getDeviceId();
