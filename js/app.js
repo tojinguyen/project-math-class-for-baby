@@ -2148,7 +2148,7 @@ const RoomStudent = {
       }
       this.selected = null;
       this._showStudentFB('detect', '❌', '<strong>Chưa đúng — còn 1 lần nữa!</strong><br><em style="color:var(--white-ghost)">Thử chọn dấu khác nhé 💡</em>', 'wrong');
-      document.getElementById('student-btn-detect').disabled = false;
+      document.getElementById('student-btn-detect').disabled = true;
     } else {
       // Both attempts failed
       if (data.errTokens) data.errTokens.forEach(t => {
@@ -2176,7 +2176,7 @@ const RoomStudent = {
     applyMathFormatting(document.getElementById('student-corr-wrong'));
     document.getElementById('student-correction').classList.add('show');
     document.getElementById('student-feedback-correct').className = 'student-feedback';
-    document.getElementById('student-btn-correct').disabled = false;
+    document.getElementById('student-btn-correct').disabled = true;
 
     const area = document.getElementById('student-corr-input'); area.innerHTML = '';
     const type = corr.type;
@@ -2225,7 +2225,7 @@ const RoomStudent = {
   },
 
   submitCorrect() {
-    if (!this.mcSel || this.cAttempt >= 2) return;
+    if (this.mcSel === null || this.mcSel === '' || this.cAttempt >= 2) return;
     this.cAttempt++;
     this._setPips(2, this.cAttempt, 'c');
     document.getElementById('student-btn-correct').disabled = true;
@@ -2250,8 +2250,9 @@ const RoomStudent = {
       this.mcSel = null;
       const area = document.getElementById('student-corr-input');
       area.querySelectorAll('.sym-key').forEach(b => b.className = 'sym-key');
+      area.querySelectorAll('.mc-opt').forEach(b => b.className = 'mc-opt');
       this._showStudentFB('correct', '❌', '<strong>Chưa đúng — còn 1 lần!</strong>', 'wrong');
-      document.getElementById('student-btn-correct').disabled = false;
+      document.getElementById('student-btn-correct').disabled = true;
     } else {
       this._showStudentFB('correct', '💔',
         `<strong>Đáp án đúng là: <em style="color:var(--yellow)">${data.answer || '?'}</em></strong><div class="fc-explain">${data.exp || ''}</div>`, 'wrong');
