@@ -140,6 +140,23 @@ const LeaderboardSync = {
       }
       return data;
     } catch(e) { return null; }
+  },
+
+  async isNameTaken(name, myId) {
+    if (!this.enabled || !window.supabase || !name || name === 'Thám Tử') return false;
+    try {
+      const { createClient } = window.supabase;
+      const client = createClient(this.supabaseUrl, this.supabaseKey);
+      // Tìm xem có ai trùng tên mà ID khác mình không
+      const { data, error } = await client
+        .from('leaderboard')
+        .select('id')
+        .eq('name', name)
+        .neq('id', myId)
+        .limit(1);
+      if (error) return false;
+      return data && data.length > 0;
+    } catch(e) { return false; }
   }
 };
 
@@ -219,21 +236,30 @@ const XP = {
     }
     return currentRank;
   },
-  renderWelcome() {
+  _nameTimeout: null,
+  async renderWelcome() {
     const nameInput = document.getElementById('player-name');
     if (!nameInput) return;
     const name = nameInput.value.trim() || 'Thám Tử';
-    localStorage.setItem('erase_player_name', name); // Save name for persistence
+    const errorEl = document.getElementById('name-error-msg');
+    const startBtns = document.querySelectorAll('.mode-card');
+    
+    localStorage.setItem('erase_player_name', name);
     const profile = this.getProfile(name);
     const xp = profile.xp;
     const rank = this.getRank(xp);
-    
-    document.getElementById('wx-rank').innerHTML = `${rank.emoji} ${rank.name}`;
-    document.getElementById('wx-rank').style.color = rank.color;
+
+    // Hiển thị Rank
+    const rankEl = document.getElementById('wx-rank');
+    if (rankEl) {
+      rankEl.innerHTML = `${rank.emoji} ${rank.name}`;
+      rankEl.style.color = rank.color;
+    }
     
     const fill = document.getElementById('wx-fill');
     if(fill) fill.style.background = rank.color;
     
+    // UI Progress
     if (rank.level === 10) {
       const elText = document.getElementById('wx-text');
       if(elText) elText.textContent = `${xp} XP (MAX)`;
@@ -249,6 +275,36 @@ const XP = {
       const remain = (rank.required + rank.next) - xp;
       const elNext = document.getElementById('wx-next');
       if(elNext) elNext.textContent = `Cần ${remain} XP nữa để lên cấp ${XP_RANKS[rank.level].name}`;
+    }
+
+    // Kiểm tra trùng tên (Debounce 500ms để tránh gọi API liên tục)
+    if (this._nameTimeout) clearTimeout(this._nameTimeout);
+    if (name !== 'Thám Tử' && name.length >= 2) {
+      this._nameTimeout = setTimeout(async () => {
+        const isTaken = await LeaderboardSync.isNameTaken(name, this.getDeviceId());
+        if (isTaken) {
+          if (errorEl) {
+            errorEl.textContent = '⚠️ Tên này đã có thám tử khác sử dụng!';
+            errorEl.style.display = 'block';
+          }
+          startBtns.forEach(btn => {
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+          });
+        } else {
+          if (errorEl) errorEl.style.display = 'none';
+          startBtns.forEach(btn => {
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+          });
+        }
+      }, 500);
+    } else {
+      if (errorEl) errorEl.style.display = 'none';
+      startBtns.forEach(btn => {
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+      });
     }
   },
   calcGameXP(score, hp, bestStreak, perfectCount) {
