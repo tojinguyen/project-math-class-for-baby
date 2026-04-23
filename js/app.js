@@ -19,54 +19,43 @@ const QuestionManager = {
   bank: [],
   
   async init() {
-    // 1. Try to load from localStorage for instant start
-    const saved = localStorage.getItem('erase_question_bank');
-    if (saved) {
-      try {
-        this.bank = JSON.parse(saved);
-        window._bankQuestions = this.bank;
-      } catch (e) {}
-    }
-
-    // 2. Try to sync from Cloud (Supabase) in background
+    // Load 100% from Cloud (Supabase)
     try {
       const cloudData = await CloudBank.fetchAll();
       if (cloudData && cloudData.length > 0) {
         this.bank = CloudBank.mapFromDB(cloudData);
         window._bankQuestions = this.bank;
-        localStorage.setItem('erase_question_bank', JSON.stringify(this.bank));
-        console.log(`Synced ${this.bank.length} questions from Cloud.`);
+        console.log(`Loaded ${this.bank.length} questions from Cloud.`);
         
         // Update UI if on Profile screen
         if (typeof Profile !== 'undefined' && Profile.renderBank) {
           Profile.renderBank();
         }
+      } else {
+        console.warn('No questions found in Cloud.');
       }
     } catch (e) {
-      console.error('Initial Cloud Sync failed:', e);
+      console.error('Cloud Load failed:', e);
     }
   },
 
   async save(data) {
     this.bank = data;
     window._bankQuestions = data;
-    // Save to local for backup
-    localStorage.setItem('erase_question_bank', JSON.stringify(data));
     
-    // Push to Cloud
+    // Push to Cloud (Supabase) — nguồn duy nhất
     try {
       await CloudBank.pushAll(data);
       toast('✓ Đã lưu lên Database thành công!', 'correct');
     } catch (e) {
       console.error('Failed to save to Cloud:', e);
-      toast('Lưu Database thất bại, đã lưu tạm ở máy.', 'warn');
+      toast('Lưu Database thất bại!', 'warn');
     }
   },
 
   clear() {
     this.bank = [];
     window._bankQuestions = null;
-    localStorage.removeItem('erase_question_bank');
   },
 
   getQuestions(totalCount) {
