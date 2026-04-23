@@ -335,10 +335,10 @@ const XP = {
     this._nameTimeout = setTimeout(async () => {
       let profile = null;
       let name = nameInput.value.trim();
+      const deviceId = LeaderboardSync.getDeviceId();
 
       // Nếu lần đầu load (không phải do gõ phím), thử tìm theo Device ID
       if (!forceNameFromInput && (!name || name === 'Thám Tử')) {
-        const deviceId = LeaderboardSync.getDeviceId();
         profile = await LeaderboardSync.getProfileById(deviceId);
         if (profile) {
           nameInput.value = profile.name;
@@ -348,13 +348,27 @@ const XP = {
         profile = await this.getProfile(name);
       }
 
+      const startBtns = document.querySelectorAll('.mode-card');
+      let isOwner = true;
+
       if (profile) {
-        if (statusEl) {
-          statusEl.style.display = 'block';
-          statusEl.style.color = 'var(--cyan)';
-          statusEl.textContent = '🕵️ Đã đăng ký hồ sơ thám tử';
+        // Kiểm tra xem profile này có thuộc về máy này không
+        if (profile.id !== deviceId) {
+          isOwner = false;
+          if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--red)';
+            statusEl.textContent = '❌ Tên này đã có chủ trên máy khác!';
+          }
+          if (regBtn) regBtn.style.display = 'none';
+        } else {
+          if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--cyan)';
+            statusEl.textContent = '🕵️ Hồ sơ thám tử của bạn';
+          }
+          if (regBtn) regBtn.style.display = 'none';
         }
-        if (regBtn) regBtn.style.display = 'none';
       } else {
         if (statusEl) {
           statusEl.style.display = 'block';
@@ -363,6 +377,12 @@ const XP = {
         }
         if (regBtn) regBtn.style.display = 'block';
       }
+
+      // Vô hiệu hóa nút chơi nếu không phải chủ sở hữu
+      startBtns.forEach(btn => {
+        btn.style.opacity = isOwner ? '1' : '0.3';
+        btn.style.pointerEvents = isOwner ? 'auto' : 'none';
+      });
 
       const xp = profile ? profile.xp : 0;
       const rank = this.getRank(xp);
