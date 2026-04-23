@@ -195,8 +195,9 @@ body::before {
   }
 
   #screen-welcome {
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    height: auto;
+    overflow-y: auto;
   }
 }
 
