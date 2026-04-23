@@ -399,10 +399,14 @@
         <div class="sw-icon">🕵️</div>
         <div class="sw-title" id="student-wait-title">Đã vào phòng!</div>
         <div class="sw-sub" id="student-wait-sub">Chờ giáo viên bắt đầu vụ án...</div>
-        <div class="sw-dots">
+        <div class="sw-dots" id="student-sw-dots">
           <div class="sw-dot"></div>
           <div class="sw-dot"></div>
           <div class="sw-dot"></div>
+        </div>
+        <div id="student-game-over-ctrl" style="display:none; flex-direction: column; align-items: center; margin-top: 20px;">
+           <div id="student-final-score" style="font-family:var(--font-title);font-size:48px;color:var(--yellow);margin-bottom:20px">0</div>
+           <button class="btn-ch" onclick="RoomStudent.exitToMenu()" style="width:200px">🏠 Trở về Menu</button>
         </div>
       </div>
 

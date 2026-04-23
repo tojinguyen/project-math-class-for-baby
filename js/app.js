@@ -1973,6 +1973,8 @@ const RoomStudent = {
     document.getElementById('student-score').textContent = '0';
     document.getElementById('student-waiting-view').style.display = 'flex';
     document.getElementById('student-q-card').style.display = 'none';
+    document.getElementById('student-sw-dots').style.display = 'flex';
+    document.getElementById('student-game-over-ctrl').style.display = 'none';
     document.getElementById('student-wait-title').textContent = 'Đang kết nối...';
     document.getElementById('student-wait-sub').textContent = 'Đang tìm phòng ' + code;
 
@@ -2310,9 +2312,12 @@ const RoomStudent = {
     wv.style.display = 'flex';
     document.getElementById('student-wait-title').textContent = '🏆 Vụ án kết thúc!';
     document.getElementById('student-wait-sub').textContent = `Tổng điểm của bạn: ${this.score} điểm`;
-    document.querySelector('#student-waiting-view .sw-dots').innerHTML =
-      `<div style="font-family:var(--font-title);font-size:40px;color:var(--yellow);margin-bottom:20px">${this.score}</div>
-       <button class="btn-ch" onclick="RoomStudent.exitToMenu()" style="width:200px;margin:0 auto">🏠 Trở về Menu</button>`;
+    
+    document.getElementById('student-sw-dots').style.display = 'none';
+    const ctrl = document.getElementById('student-game-over-ctrl');
+    ctrl.style.display = 'flex';
+    document.getElementById('student-final-score').textContent = this.score;
+
     spawnConfetti();
   },
 
