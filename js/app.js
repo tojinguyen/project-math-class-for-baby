@@ -214,9 +214,63 @@ const XP = {
     const profile = await LeaderboardSync.getProfile(playerName);
     if (profile) {
       this._cache[playerName] = profile;
-    } else {
-      // Mặc định cho profile mới
-      this._cache[playerName] = { 
+    }
+    return profile;
+  },
+
+  async handleRegister() {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput.value.trim();
+    if (!name || name === 'Thám Tử') {
+      toast('Vui lòng nhập tên thật của bạn!', 'warn');
+      return;
+    }
+
+    const btn = document.getElementById('btn-register-name');
+    const statusEl = document.getElementById('name-check-status');
+    
+    btn.disabled = true;
+    btn.textContent = 'Đang check...';
+
+    try {
+      const exists = await LeaderboardSync.getProfile(name);
+      if (exists) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--red)';
+        statusEl.textContent = '❌ Tên này đã có thám tử khác sử dụng!';
+        toast('Tên đã tồn tại!', 'error');
+      } else {
+        const newProfile = {
+          id: 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now(),
+          name: name,
+          xp: 0,
+          best_streak: 0,
+          total_cases: 0,
+          perfect_cases: 0
+        };
+        await LeaderboardSync.uploadProfile(newProfile);
+        this._cache[name] = newProfile;
+        
+        statusEl.style.display = 'block';
+        statusEl.style.color = 'var(--green)';
+        statusEl.textContent = '✅ Đăng ký thành công! Chào mừng thám tử mới!';
+        toast('Đăng ký thành công!', 'correct');
+        this.renderWelcome(); // Refresh UI
+      }
+    } catch (e) {
+      console.error(e);
+      toast('Lỗi hệ thống!', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Đăng ký';
+    }
+  },
+
+  async saveProfile(playerName, xpAdd, bestStreak = 0, perfectCasesAdd = 0) {
+    let profile = await this.getProfile(playerName);
+    if (!profile) {
+      // Nếu chưa có (chưa đăng ký) thì tạo profile tạm để lưu kết quả
+      profile = {
         id: 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now(),
         name: playerName,
         xp: 0,
@@ -225,11 +279,6 @@ const XP = {
         perfect_cases: 0
       };
     }
-    return this._cache[playerName];
-  },
-
-  async saveProfile(playerName, xpAdd, bestStreak = 0, perfectCasesAdd = 0) {
-    const profile = await this.getProfile(playerName);
     profile.xp += xpAdd;
     if (bestStreak > (profile.best_streak || 0)) profile.best_streak = bestStreak;
     profile.total_cases = (profile.total_cases || 0) + 1;
@@ -261,7 +310,28 @@ const XP = {
     // Debounce to avoid excessive DB calls
     this._nameTimeout = setTimeout(async () => {
       const profile = await this.getProfile(name);
-      const xp = profile.xp;
+      const statusEl = document.getElementById('name-check-status');
+      const regBtn = document.getElementById('btn-register-name');
+      
+      if (profile) {
+        // Name exists
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.color = 'var(--cyan)';
+          statusEl.textContent = '🕵️ Đã đăng ký hồ sơ thám tử';
+        }
+        if (regBtn) regBtn.style.display = 'none';
+      } else {
+        // New name
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.style.color = 'var(--yellow)';
+          statusEl.textContent = '❓ Tên này chưa được đăng ký';
+        }
+        if (regBtn) regBtn.style.display = 'block';
+      }
+
+      const xp = profile ? profile.xp : 0;
       const rank = this.getRank(xp);
 
       // Hiển thị Rank

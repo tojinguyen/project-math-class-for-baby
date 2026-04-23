@@ -55,7 +55,9 @@
             onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
             onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'"
             oninput="XP.renderWelcome()">
+          <button id="btn-register-name" class="btn-name-action" onclick="XP.handleRegister()">Đăng ký</button>
         </div>
+        <div id="name-check-status" style="font-size: 11px; font-weight: 700; margin-bottom: 8px; text-align: center; display: none;"></div>
         <div id="name-error-msg" style="color:#ff4757; font-size:12px; font-weight:bold; margin-top:-4px; margin-bottom:8px; display:none; text-align:center;"></div>
         
         <div id="welcome-xp-box" style="width: 100%;">
@@ -106,6 +108,28 @@
       flex-direction: column;
       min-height: 100vh;
       background: radial-gradient(ellipse 80% 60% at 50% 20%, rgba(245, 197, 24, 0.04) 0%, var(--space) 100%);
+    }
+    .btn-name-action {
+      background: var(--yellow);
+      color: var(--space);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-family: var(--font-body);
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-name-action:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+    .btn-name-action:disabled {
+      background: var(--white-ghost);
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   </style>
 
