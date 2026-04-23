@@ -2311,7 +2311,8 @@ const RoomStudent = {
     document.getElementById('student-wait-title').textContent = '🏆 Vụ án kết thúc!';
     document.getElementById('student-wait-sub').textContent = `Tổng điểm của bạn: ${this.score} điểm`;
     document.querySelector('#student-waiting-view .sw-dots').innerHTML =
-      `<div style="font-family:var(--font-title);font-size:40px;color:var(--yellow)">${this.score}</div>`;
+      `<div style="font-family:var(--font-title);font-size:40px;color:var(--yellow);margin-bottom:20px">${this.score}</div>
+       <button class="btn-ch" onclick="RoomStudent.exitToMenu()" style="width:200px;margin:0 auto">🏠 Trở về Menu</button>`;
     spawnConfetti();
   },
 
@@ -2344,6 +2345,11 @@ const RoomStudent = {
     const el = document.getElementById('student-score');
     el.textContent = this.score;
     el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  },
+
+  exitToMenu() {
+    if (this.hostConn) this.hostConn.close();
+    location.reload();
   }
 };
 
