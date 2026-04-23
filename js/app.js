@@ -511,15 +511,20 @@ function formatMathText(text) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+  
+  // 1. Fractions: a/b -> math-frac
   const withFractions = escaped.replace(
-    /([−-]?[A-Za-z0-9.]+)\s*\/\s*([−-]?[A-Za-z0-9.]+)/g,
+    /([−-]?[A-Za-z0-9.()]+)\s*\/\s*([−-]?[A-Za-z0-9.()]+)/g,
     '<span class="math-frac"><span class="math-frac-top">$1</span><span class="math-frac-bottom">$2</span></span>'
   );
+  
+  // 2. Exponents: a^b -> math-sup (support standard and full-width carets)
   return withFractions.replace(
-    /([A-Za-z0-9.]+)\s*\^\s*([−-]?[A-Za-z0-9.]+)/g,
+    /([A-Za-z0-9.()]+)\s*[\^＾]\s*([−-]?[A-Za-z0-9.()]+)/g,
     '$1<sup class="math-sup">$2</sup>'
   );
 }
+
 function applyMathFormatting(rootEl) {
   if (!rootEl) return;
   const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, null);
@@ -527,17 +532,19 @@ function applyMathFormatting(rootEl) {
   let node = walker.nextNode();
   while (node) {
     const txt = node.nodeValue || '';
-    if (/[\/^]/.test(txt) && txt.trim()) targets.push(node);
+    if (/[\/^＾]/.test(txt) && txt.trim()) targets.push(node);
     node = walker.nextNode();
   }
   targets.forEach(textNode => {
     const html = formatMathText(textNode.nodeValue || '');
     if (!html || html === textNode.nodeValue) return;
     const wrap = document.createElement('span');
+    wrap.className = 'math-formatted-wrap';
     wrap.innerHTML = html;
     textNode.replaceWith(wrap);
   });
 }
+
 function updateQScore() {
   if (S.done) return;
   let maxD = 0;
@@ -681,8 +688,13 @@ function renderQ(idx) {
   const mainProblem = document.getElementById('q-text-main');
   mainProblem.innerHTML = q.problem;
   applyMathFormatting(mainProblem);
-  document.getElementById('hint-content').innerHTML = q.hint || 'Chú ý dấu khi chuyển vế.';
-  document.getElementById('rule-content').innerHTML = q.rule || 'Mỗi hạng tử chuyển vế phải đổi dấu!';
+  const hintEl = document.getElementById('hint-content');
+  hintEl.innerHTML = q.hint || 'Chú ý dấu khi chuyển vế.';
+  applyMathFormatting(hintEl);
+  
+  const ruleEl = document.getElementById('rule-content');
+  ruleEl.innerHTML = q.rule || 'Mỗi hạng tử chuyển vế phải đổi dấu!';
+  applyMathFormatting(ruleEl);
 
   // Case badge difficulty
   const badge = document.getElementById('case-diff-badge');
@@ -1337,7 +1349,9 @@ const Profile = {
         <div style="margin-bottom:8px">${q.hint || '—'}</div>
         <div class="bqd-label">SỐ BƯỚC: ${(q.steps || []).length} · LỖI TẠI TOKEN: ${(q.errTokens || []).join(', ')}</div>
       </div>`).join('');
+    applyMathFormatting(listEl);
     document.getElementById('profile-q-count').max = bank.length;
+
   },
 
   toggleDetail(i) {
@@ -1771,6 +1785,7 @@ const RoomHost = {
     const fb = document.getElementById('host-feedback');
     fb.className = 'ch-feedback-big show fc-warn';
     fb.innerHTML = `<div class="cfb-icon">💡</div><div class="cfb-text"><strong>Đây là dấu bị làm sai!</strong><div class="cfb-rule">${q.rule}</div></div>`;
+    applyMathFormatting(fb);
     // Notify students
     this._broadcast({ type: 'reveal_detect', errTokens: q.errTokens, rule: q.rule });
     document.getElementById('host-btn-skip').style.display = 'inline-flex';
@@ -2046,7 +2061,9 @@ const RoomStudent = {
     const studentProblem = document.getElementById('student-problem');
     studentProblem.innerHTML = q.problem;
     applyMathFormatting(studentProblem);
-    document.getElementById('student-hint').innerHTML = q.hint || '';
+    const studentHint = document.getElementById('student-hint');
+    studentHint.innerHTML = q.hint || '';
+    applyMathFormatting(studentHint);
 
     this.phase = 'detect';
     this._setStudentPhaseUI('detect');

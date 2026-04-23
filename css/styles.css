@@ -5808,3 +5808,40 @@ body::before {
   cursor: not-allowed;
   transform: none;
 }
+
+/* ══ MATH FORMATTING ══ */
+.math-sup {
+  font-size: 0.75em;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 1px;
+  font-weight: 800;
+  color: inherit;
+  font-family: var(--font-body);
+}
+
+.math-frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 0.9em;
+  margin: 0 0.15em;
+  line-height: 1;
+}
+
+.math-frac-top {
+  border-bottom: 2px solid currentColor;
+  padding: 0 3px;
+  min-width: 1.2em;
+}
+
+.math-frac-bottom {
+  padding: 0 3px;
+  min-width: 1.2em;
+}
+
+/* Ensure math text stands out slightly */
+.math-sup, .math-frac-top, .math-frac-bottom {
+  font-variant-numeric: tabular-nums;
+}
