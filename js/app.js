@@ -1413,7 +1413,6 @@ const Profile = {
     const b = document.getElementById('bank-mode-badge');
     const s = document.getElementById('wf-bank-status');
     if (b) b.innerHTML = '📁';
-    if (s) s.textContent = 'Ngân hàng: Mặc định (5 câu)';
     document.getElementById('profile-q-count').value = 7;
     this.renderBank(); this.renderStats();
     toast('Đã xóa ngân hàng tùy chỉnh', '');
