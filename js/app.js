@@ -11,7 +11,7 @@ const QUESTIONS = [
       { id: 's2', label: '[CV]', tokens: [{ id: 't21', tx: '2x', tp: 'var' }, { id: 't22', tx: '=', tp: 'eq' }, { id: 't23', tx: '13', tp: 'num' }, { id: 't24', tx: '+', tp: 'op', err: true }, { id: 't25', tx: '5', tp: 'num' }] },
       { id: 's3', label: '[TÍNH]', tokens: [{ id: 't31', tx: '2x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '18', tp: 'num', err: true }] },
       { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '9', tp: 'num', err: true }] }
-    ], errTokens: ['t24', 't33'], primaryErr: ['t24'],
+    ], errTokens: ['t24', 't33'], primaryErr: ['t24'], errorType: 'chuyenVe',
     correction: {
       type: 'symbol', question: 'Dấu <strong>+</strong> ở bước chuyển vế phải thay bằng dấu gì?', wrongExpr: '2x = 13 <mark>+</mark> 5', symbols: ['+', '−', '×', '÷'], correct: '−',
       exp: '<strong>+5</strong> chuyển sang vế phải → <strong>−5</strong>. Vậy: 2x = 13−5=8 → <strong>x=4</strong>.'
@@ -28,7 +28,7 @@ const QUESTIONS = [
       { id: 's2', label: '[CV]', tokens: [{ id: 't21', tx: '3x', tp: 'var' }, { id: 't22', tx: '=', tp: 'eq' }, { id: 't23', tx: '2', tp: 'num' }, { id: 't24', tx: '−', tp: 'op', err: true }, { id: 't25', tx: '7', tp: 'num' }] },
       { id: 's3', label: '[TÍNH]', tokens: [{ id: 't31', tx: '3x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '−5', tp: 'num', err: true }] },
       { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '−5/3', tp: 'num', err: true }] }
-    ], errTokens: ['t24', 't33'], primaryErr: ['t24'],
+    ], errTokens: ['t24', 't33'], primaryErr: ['t24'], errorType: 'chuyenVe',
     correction: {
       type: 'symbol', question: 'Dấu <strong>−</strong> ở bước chuyển vế phải thay bằng dấu gì?', wrongExpr: '3x = 2 <mark>−</mark> 7', symbols: ['+', '−', '×', '÷'], correct: '+',
       exp: '<strong>−7</strong> chuyển sang phải → <strong>+7</strong>. Vậy: 3x=2+7=9 → <strong>x=3</strong>.'
@@ -45,7 +45,7 @@ const QUESTIONS = [
       { id: 's2', label: '[CV]', tokens: [{ id: 't21', tx: '5x', tp: 'var' }, { id: 't22', tx: '−', tp: 'op' }, { id: 't23', tx: '2x', tp: 'var' }, { id: 't24', tx: '=', tp: 'eq' }, { id: 't25', tx: '−9', tp: 'num' }, { id: 't26', tx: '+', tp: 'op', err: true }, { id: 't27', tx: '3', tp: 'num' }] },
       { id: 's3', label: '[GỌN]', tokens: [{ id: 't31', tx: '3x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '−6', tp: 'num', err: true }] },
       { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '−2', tp: 'num', err: true }] }
-    ], errTokens: ['t26', 't33'], primaryErr: ['t26'],
+    ], errTokens: ['t26', 't33'], primaryErr: ['t26'], errorType: 'chuyenVe',
     correction: {
       type: 'symbol', question: 'Dấu <strong>+</strong> trước 3 ở vế phải phải thay bằng dấu gì?', wrongExpr: '5x − 2x = −9 <mark>+</mark> 3', symbols: ['+', '−', '×', '÷'], correct: '−',
       exp: '<strong>+3</strong> chuyển sang phải → <strong>−3</strong>. Vậy: 3x=−9−3=−12 → <strong>x=−4</strong>.'
@@ -62,7 +62,7 @@ const QUESTIONS = [
       { id: 's2', label: '[BỎ()]', tokens: [{ id: 't21', tx: '2x', tp: 'var' }, { id: 't22', tx: '−', tp: 'op' }, { id: 't23', tx: '3', tp: 'num', err: true }, { id: 't24', tx: '=', tp: 'eq' }, { id: 't25', tx: '4', tp: 'num' }] },
       { id: 's3', label: '[CV]', tokens: [{ id: 't31', tx: '2x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '4', tp: 'num' }, { id: 't34', tx: '+', tp: 'op' }, { id: 't35', tx: '3', tp: 'num', err: true }] },
       { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '3.5', tp: 'num', err: true }] }
-    ], errTokens: ['t23', 't35'], primaryErr: ['t23'],
+    ], errTokens: ['t23', 't35'], primaryErr: ['t23'], errorType: 'thuTu',
     correction: {
       type: 'text', question: '2(x−3) bỏ ngoặc ra bằng gì? (vd: 2x-6)', wrongExpr: '<mark>2x − 3</mark> = 4', correctAnswers: ['2x-6', '2x - 6'], displayCorrect: '2x − 6 = 4',
       exp: '2×(x−3) = <strong>2x−6</strong>. Vậy: 2x−6=4 → 2x=10 → <strong>x=5</strong>.'
@@ -80,7 +80,7 @@ const QUESTIONS = [
       { id: 's3', label: '[CV]', tokens: [{ id: 't31', tx: '3x', tp: 'var' }, { id: 't32', tx: '−', tp: 'op' }, { id: 't33', tx: 'x', tp: 'var' }, { id: 't34', tx: '−', tp: 'op' }, { id: 't35', tx: 'x', tp: 'var', err: true }, { id: 't36', tx: '=', tp: 'eq' }, { id: 't37', tx: '−4', tp: 'num' }, { id: 't38', tx: '−', tp: 'op' }, { id: 't39', tx: '2', tp: 'num' }] },
       { id: 's4', label: '[GỌN]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '−6', tp: 'num', err: true }] },
       { id: 's5', label: '[KQ]', tokens: [{ id: 't51', tx: 'x', tp: 'var' }, { id: 't52', tx: '=', tp: 'eq' }, { id: 't53', tx: '−6', tp: 'num', err: true }] }
-    ], errTokens: ['t28', 't35'], primaryErr: ['t28'],
+    ], errTokens: ['t28', 't35'], primaryErr: ['t28'], errorType: 'thuTu',
     correction: {
       type: 'symbol', question: 'Dấu <strong>−</strong> trước x sau khi bỏ ngoặc phải là dấu gì?', wrongExpr: 'x − 4 <mark>−</mark> x', symbols: ['+', '−', '×', '÷'], correct: '+',
       exp: '−(4−x) = −4<strong>+x</strong>. Vậy: 3x+2=x−4+x → x=−6.'
@@ -136,6 +136,7 @@ const XP = {
     const nameInput = document.getElementById('player-name');
     if (!nameInput) return;
     const name = nameInput.value.trim() || 'Thám Tử';
+    localStorage.setItem('erase_player_name', name); // Save name for persistence
     const profile = this.getProfile(name);
     const xp = profile.xp;
     const rank = this.getRank(xp);
@@ -1869,5 +1870,13 @@ const RoomStudent = {
   }
 };
 
-// Initialize XP bar when the script runs
-setTimeout(() => XP.renderWelcome(), 100);
+// Initialize App
+setTimeout(() => {
+  const savedName = localStorage.getItem('erase_player_name');
+  if (savedName) {
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) nameInput.value = savedName;
+  }
+  XP.renderWelcome();
+}, 100);
+
