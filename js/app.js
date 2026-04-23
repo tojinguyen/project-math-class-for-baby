@@ -125,6 +125,15 @@ const LeaderboardSync = {
     this.client = createClient(this.supabaseUrl, this.supabaseKey);
   },
 
+  getDeviceId() {
+    let id = localStorage.getItem('erase_device_id');
+    if (!id) {
+      id = 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+      localStorage.setItem('erase_device_id', id);
+    }
+    return id;
+  },
+
   async uploadProfile(profile) {
     if (!this.enabled || !window.supabase) return;
     this.init();
@@ -154,6 +163,17 @@ const LeaderboardSync = {
     const { data, error } = await this.client.from('profiles').select('*').eq('name', name).maybeSingle();
     if (error) {
       console.error('Supabase Get Profile Error:', error.message);
+      throw error;
+    }
+    return data;
+  },
+
+  async getProfileById(id) {
+    if (!this.enabled || !window.supabase || !id) return null;
+    this.init();
+    const { data, error } = await this.client.from('profiles').select('*').eq('id', id).maybeSingle();
+    if (error) {
+      console.error('Supabase Get Profile By ID Error:', error.message);
       throw error;
     }
     return data;
@@ -243,7 +263,7 @@ const XP = {
         toast('Tên đã tồn tại!', 'error');
       } else {
         const newProfile = {
-          id: 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now(),
+          id: LeaderboardSync.getDeviceId(),
           name: name,
           xp: 0,
           best_streak: 0,
@@ -257,7 +277,7 @@ const XP = {
         statusEl.style.color = 'var(--green)';
         statusEl.textContent = '✅ Đăng ký thành công! Chào mừng thám tử mới!';
         toast('Đăng ký thành công!', 'correct');
-        this.renderWelcome(); // Refresh UI
+        this.renderWelcome(true); // Force refresh with the new name
       }
     } catch (e) {
       console.error(e);
@@ -303,23 +323,32 @@ const XP = {
   },
 
   _nameTimeout: null,
-  async renderWelcome() {
+  async renderWelcome(forceNameFromInput = false) {
     const nameInput = document.getElementById('player-name');
     if (!nameInput) return;
-    const name = nameInput.value.trim() || 'Thám Tử';
-    const errorEl = document.getElementById('name-error-msg');
-    const startBtns = document.querySelectorAll('.mode-card');
     
+    const statusEl = document.getElementById('name-check-status');
+    const regBtn = document.getElementById('btn-register-name');
+
     if (this._nameTimeout) clearTimeout(this._nameTimeout);
     
-    // Debounce to avoid excessive DB calls
     this._nameTimeout = setTimeout(async () => {
-      const profile = await this.getProfile(name);
-      const statusEl = document.getElementById('name-check-status');
-      const regBtn = document.getElementById('btn-register-name');
-      
+      let profile = null;
+      let name = nameInput.value.trim();
+
+      // Nếu lần đầu load (không phải do gõ phím), thử tìm theo Device ID
+      if (!forceNameFromInput && (!name || name === 'Thám Tử')) {
+        const deviceId = LeaderboardSync.getDeviceId();
+        profile = await LeaderboardSync.getProfileById(deviceId);
+        if (profile) {
+          nameInput.value = profile.name;
+          name = profile.name;
+        }
+      } else {
+        profile = await this.getProfile(name);
+      }
+
       if (profile) {
-        // Name exists
         if (statusEl) {
           statusEl.style.display = 'block';
           statusEl.style.color = 'var(--cyan)';
@@ -327,7 +356,6 @@ const XP = {
         }
         if (regBtn) regBtn.style.display = 'none';
       } else {
-        // New name
         if (statusEl) {
           statusEl.style.display = 'block';
           statusEl.style.color = 'var(--yellow)';
@@ -729,6 +757,7 @@ function onTokenClick(tid) {
 const Game = {
   startGame() {
     S.name = document.getElementById('player-name').value.trim() || 'Thám Tử';
+    localStorage.setItem('erase_player_name', S.name);
     S.qIdx = 0; S.score = 0; S.qResults = [];
     S.analytics = { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] };
     S.active = true;
