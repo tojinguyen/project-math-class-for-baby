@@ -368,7 +368,7 @@ const XP = {
       const deviceId = LeaderboardSync.getDeviceId();
 
       // Nếu lần đầu load (không phải do gõ phím), thử tìm theo Device ID
-      if (!forceNameFromInput && (!name || name === 'Thám Tử')) {
+      if (!forceNameFromInput && name === 'Thám Tử') {
         profile = await LeaderboardSync.getProfileById(deviceId);
         if (profile) {
           nameInput.value = profile.name;
@@ -401,11 +401,15 @@ const XP = {
         }
       } else {
         if (statusEl) {
-          statusEl.style.display = 'block';
-          statusEl.style.color = 'var(--yellow)';
-          statusEl.textContent = '❓ Tên này chưa được đăng ký';
+          if (!name) {
+            statusEl.style.display = 'none';
+          } else {
+            statusEl.style.display = 'block';
+            statusEl.style.color = 'var(--yellow)';
+            statusEl.textContent = '❓ Tên này chưa được đăng ký';
+          }
         }
-        if (regBtn) regBtn.style.display = 'block';
+        if (regBtn) regBtn.style.display = name ? 'block' : 'none';
       }
 
       // Vô hiệu hóa nút chơi nếu không phải chủ sở hữu

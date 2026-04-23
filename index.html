@@ -54,7 +54,7 @@
             style="flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-body); font-weight: 800; font-size: 20px; color: var(--white); padding: 8px 12px; caret-color: var(--cyan);"
             onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
             onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'"
-            oninput="XP.renderWelcome()">
+            oninput="XP.renderWelcome(true)">
           <button id="btn-register-name" class="btn-name-action" onclick="XP.handleRegister()">Đăng ký</button>
         </div>
         <div id="name-check-status" style="font-size: 11px; font-weight: 700; margin-bottom: 8px; text-align: center; display: none;"></div>
