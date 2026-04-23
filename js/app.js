@@ -116,15 +116,16 @@ const XP_RANKS = [
 const LeaderboardSync = {
   enabled: true, 
   supabaseUrl: 'https://eehegsaxegizcynygafk.supabase.co',
-  supabaseKey: 'sb_publishable_TCp4sVa3hV9LFTulbcUOMQ_8iGyibUh',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaGVnc2F4ZWdpemN5bnlnYWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzIyNTcsImV4cCI6MjA5MjUwODI1N30.RsAipm-k-6sGT5fnDJp1wQ8Q8rQrLvabYyfgMscDIc4',
 
   async uploadScore(id, name, xp) {
     if (!this.enabled || !window.supabase) return;
     try {
       const { createClient } = window.supabase;
       const client = createClient(this.supabaseUrl, this.supabaseKey);
-      await client.from('leaderboard').upsert({ id, name, xp, updated_at: new Date().toISOString() });
-    } catch(e) { console.error('Supabase Sync Error:', e); }
+      const { error } = await client.from('leaderboard').upsert({ id, name, xp, updated_at: new Date().toISOString() });
+      if (error) console.error('Supabase Sync Error:', error.message, error.details);
+    } catch(e) { console.error('Supabase Sync Exception:', e); }
   },
 
   async fetchScores() {
@@ -132,7 +133,11 @@ const LeaderboardSync = {
     try {
       const { createClient } = window.supabase;
       const client = createClient(this.supabaseUrl, this.supabaseKey);
-      const { data } = await client.from('leaderboard').select('*').order('xp', { ascending: false }).limit(20);
+      const { data, error } = await client.from('leaderboard').select('*').order('xp', { ascending: false }).limit(20);
+      if (error) {
+        console.error('Supabase Fetch Error:', error.message);
+        return null;
+      }
       return data;
     } catch(e) { return null; }
   }
