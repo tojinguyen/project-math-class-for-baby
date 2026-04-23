@@ -1072,7 +1072,8 @@ const Profile = {
   updateWelcomeBadge(count) {
     const b = document.getElementById('bank-mode-badge');
     const s = document.getElementById('wf-bank-status');
-    if (b) b.textContent = `📋 ${count} CÂU ĐÃ NẠP`;
+    // Keep the icon 📁 and avoid overwriting it with long text
+    if (b) b.innerHTML = '📁';
     if (s) s.textContent = `Ngân hàng: ${count} câu tùy chỉnh`;
   },
 
@@ -1081,7 +1082,7 @@ const Profile = {
     window._bankQuestions = null; window._bankQCount = null;
     const b = document.getElementById('bank-mode-badge');
     const s = document.getElementById('wf-bank-status');
-    if (b) b.textContent = '📋 NGÂN HÀNG ĐỀ';
+    if (b) b.innerHTML = '📁';
     if (s) s.textContent = 'Ngân hàng: Mặc định (5 câu)';
     document.getElementById('profile-q-count').value = 5;
     this.renderBank(); this.renderStats();
