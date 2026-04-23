@@ -859,10 +859,28 @@ const Game = {
 const Dashboard = {
   init() {
     const all = JSON.parse(localStorage.getItem('erase_among') || '[]');
-    const last = all[all.length - 1];
-    const data = last || { name: S.name, score: S.score, qResults: S.qResults, analytics: S.analytics };
+    const studentHistory = all.filter(g => g.name === (S.name || 'Thám Tử'));
+    
+    if (studentHistory.length === 0) {
+      document.getElementById('dp-student-name').textContent = `Thám Tử: ${S.name || 'Mới'}`;
+      this.showEmptyState();
+      return;
+    }
+
+    const last = studentHistory[studentHistory.length - 1];
+    const data = last;
     document.getElementById('dp-student-name').textContent = `Thám Tử: ${data.name || S.name}`;
     this.student(data); this.analytics(data); this.alerts(data);
+  },
+  showEmptyState() {
+    const feedback = document.getElementById('dp-feedback');
+    feedback.innerHTML = `<span style="color:var(--white-ghost); font-weight:400">🕵️‍♂️ Chưa có dữ liệu phá án. Hãy bắt đầu vụ án đầu tiên để xem phân tích!</span>`;
+    document.getElementById('dp-total').innerHTML = `0<span> đ</span>`;
+    document.getElementById('dp-det-rate').innerHTML = `0<span>%</span>`;
+    document.getElementById('dp-cor-rate').innerHTML = `0<span>%</span>`;
+    document.getElementById('dp-avg-time').textContent = '—';
+    document.getElementById('dp-q-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--white-ghost)">Bắt đầu giải đố để thu thập bằng chứng!</td></tr>';
+    document.getElementById('an-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px 20px;"><div style="font-size: 40px; margin-bottom: 10px;">🕵️‍♂️</div><div style="color:var(--yellow); font-weight:700; font-size:16px;">CHƯA CÓ LỊCH SỬ!</div><div style="color:var(--white-ghost); font-size:13px; margin-top:5px; opacity:0.7;">Các thám tử vẫn đang trong quá trình điều tra bí mật...</div></td></tr>`;
   },
   student(d) {
     const qr = d.qResults || []; const n = qr.filter(Boolean).length;
