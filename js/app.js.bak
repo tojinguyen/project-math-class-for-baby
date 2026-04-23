@@ -117,44 +117,46 @@ const LeaderboardSync = {
   enabled: true, 
   supabaseUrl: 'https://eehegsaxegizcynygafk.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaGVnc2F4ZWdpemN5bnlnYWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzIyNTcsImV4cCI6MjA5MjUwODI1N30.RsAipm-k-6sGT5fnDJp1wQ8Q8rQrLvabYyfgMscDIc4',
-  client: null,
 
-  init() {
-    if (this.client || !window.supabase) return;
-    const { createClient } = window.supabase;
-    this.client = createClient(this.supabaseUrl, this.supabaseKey);
-  },
-
-  async uploadProfile(profile) {
+  async uploadScore(id, name, xp) {
     if (!this.enabled || !window.supabase) return;
-    this.init();
     try {
-      const { error } = await this.client.from('profiles').upsert({ 
-        ...profile, 
-        last_active: new Date().toISOString() 
-      });
-      if (error) console.error('Supabase Profile Sync Error:', error.message);
+      const { createClient } = window.supabase;
+      const client = createClient(this.supabaseUrl, this.supabaseKey);
+      const { error } = await client.from('leaderboard').upsert({ id, name, xp, updated_at: new Date().toISOString() });
+      if (error) console.error('Supabase Sync Error:', error.message, error.details);
     } catch(e) { console.error('Supabase Sync Exception:', e); }
   },
 
   async fetchScores() {
     if (!this.enabled || !window.supabase) return null;
-    this.init();
     try {
-      const { data, error } = await this.client.from('profiles').select('name, xp').order('xp', { ascending: false }).limit(20);
-      if (error) return null;
+      const { createClient } = window.supabase;
+      const client = createClient(this.supabaseUrl, this.supabaseKey);
+      const { data, error } = await client.from('leaderboard').select('*').order('xp', { ascending: false }).limit(20);
+      if (error) {
+        console.error('Supabase Fetch Error:', error.message);
+        return null;
+      }
       return data;
     } catch(e) { return null; }
   },
 
-  async getProfile(name) {
-    if (!this.enabled || !window.supabase || !name) return null;
-    this.init();
+  async isNameTaken(name, myId) {
+    if (!this.enabled || !window.supabase || !name || name === 'Thám Tử') return false;
     try {
-      const { data, error } = await this.client.from('profiles').select('*').eq('name', name).maybeSingle();
-      if (error) return null;
-      return data;
-    } catch(e) { return null; }
+      const { createClient } = window.supabase;
+      const client = createClient(this.supabaseUrl, this.supabaseKey);
+      // Tìm xem có ai trùng tên mà ID khác mình không
+      const { data, error } = await client
+        .from('leaderboard')
+        .select('id')
+        .eq('name', name)
+        .neq('id', myId)
+        .limit(1);
+      if (error) return false;
+      return data && data.length > 0;
+    } catch(e) { return false; }
   }
 };
 
@@ -204,42 +206,29 @@ const GameAnalysis = {
   }
 };
 
-/* ══ XP SYSTEM ══ */
 const XP = {
-  _cache: {},
-  _currentName: '',
-
-  async getProfile(playerName) {
-    if (this._cache[playerName]) return this._cache[playerName];
-    const profile = await LeaderboardSync.getProfile(playerName);
-    if (profile) {
-      this._cache[playerName] = profile;
-    } else {
-      // Mặc định cho profile mới
-      this._cache[playerName] = { 
-        id: 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now(),
-        name: playerName,
-        xp: 0,
-        best_streak: 0,
-        total_cases: 0,
-        perfect_cases: 0
-      };
+  getProfile(playerName) {
+    const profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}');
+    if (!profiles[playerName]) profiles[playerName] = { xp: 0 };
+    return profiles[playerName];
+  },
+  saveProfile(playerName, xpAdd) {
+    const profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}');
+    if (!profiles[playerName]) profiles[playerName] = { xp: 0 };
+    profiles[playerName].xp += xpAdd;
+    localStorage.setItem('erase_profiles', JSON.stringify(profiles));
+    const devId = this.getDeviceId();
+    LeaderboardSync.uploadScore(devId, playerName, profiles[playerName].xp); // Sync with Device ID
+    return profiles[playerName];
+  },
+  getDeviceId() {
+    let id = localStorage.getItem('erase_device_id');
+    if (!id) {
+      id = 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+      localStorage.setItem('erase_device_id', id);
     }
-    return this._cache[playerName];
+    return id;
   },
-
-  async saveProfile(playerName, xpAdd, bestStreak = 0, perfectCasesAdd = 0) {
-    const profile = await this.getProfile(playerName);
-    profile.xp += xpAdd;
-    if (bestStreak > (profile.best_streak || 0)) profile.best_streak = bestStreak;
-    profile.total_cases = (profile.total_cases || 0) + 1;
-    profile.perfect_cases = (profile.perfect_cases || 0) + perfectCasesAdd;
-    
-    await LeaderboardSync.uploadProfile(profile);
-    this._cache[playerName] = profile;
-    return profile;
-  },
-
   getRank(xp) {
     let currentRank = XP_RANKS[0];
     for (let i = 0; i < XP_RANKS.length; i++) {
@@ -247,7 +236,6 @@ const XP = {
     }
     return currentRank;
   },
-
   _nameTimeout: null,
   async renderWelcome() {
     const nameInput = document.getElementById('player-name');
@@ -256,51 +244,69 @@ const XP = {
     const errorEl = document.getElementById('name-error-msg');
     const startBtns = document.querySelectorAll('.mode-card');
     
-    if (this._nameTimeout) clearTimeout(this._nameTimeout);
+    localStorage.setItem('erase_player_name', name);
+    const profile = this.getProfile(name);
+    const xp = profile.xp;
+    const rank = this.getRank(xp);
+
+    // Hiển thị Rank
+    const rankEl = document.getElementById('wx-rank');
+    if (rankEl) {
+      rankEl.innerHTML = `${rank.emoji} ${rank.name}`;
+      rankEl.style.color = rank.color;
+    }
     
-    // Debounce to avoid excessive DB calls
-    this._nameTimeout = setTimeout(async () => {
-      const profile = await this.getProfile(name);
-      const xp = profile.xp;
-      const rank = this.getRank(xp);
-
-      // Hiển thị Rank
-      const rankEl = document.getElementById('wx-rank');
-      if (rankEl) {
-        rankEl.innerHTML = `${rank.emoji} ${rank.name}`;
-        rankEl.style.color = rank.color;
-      }
-      
-      const fill = document.getElementById('wx-fill');
-      if(fill) fill.style.background = rank.color;
-      
-      // UI Progress
+    const fill = document.getElementById('wx-fill');
+    if(fill) fill.style.background = rank.color;
+    
+    // UI Progress
+    if (rank.level === 10) {
       const elText = document.getElementById('wx-text');
+      if(elText) elText.textContent = `${xp} XP (MAX)`;
+      if(fill) fill.style.width = '100%';
       const elNext = document.getElementById('wx-next');
-      
-      if (rank.level === 10) {
-        if(elText) elText.textContent = `${xp} XP (MAX)`;
-        if(fill) fill.style.width = '100%';
-        if(elNext) elNext.textContent = 'Đã đạt cấp bậc cao nhất!';
-      } else {
-        const xpInLevel = xp - rank.required;
-        if(elText) elText.textContent = `${xp} / ${rank.required + rank.next} XP`;
-        const pct = Math.min(100, Math.round((xpInLevel / rank.next) * 100));
-        if(fill) fill.style.width = `${pct}%`;
-        const remain = (rank.required + rank.next) - xp;
-        if(elNext) elNext.textContent = `Cần ${remain} XP nữa để lên cấp ${XP_RANKS[rank.level].name}`;
-      }
+      if(elNext) elNext.textContent = 'Đã đạt cấp bậc cao nhất!';
+    } else {
+      const xpInLevel = xp - rank.required;
+      const elText = document.getElementById('wx-text');
+      if(elText) elText.textContent = `${xp} / ${rank.required + rank.next} XP`;
+      const pct = Math.min(100, Math.round((xpInLevel / rank.next) * 100));
+      if(fill) fill.style.width = `${pct}%`;
+      const remain = (rank.required + rank.next) - xp;
+      const elNext = document.getElementById('wx-next');
+      if(elNext) elNext.textContent = `Cần ${remain} XP nữa để lên cấp ${XP_RANKS[rank.level].name}`;
+    }
 
+    // Kiểm tra trùng tên (Debounce 500ms để tránh gọi API liên tục)
+    if (this._nameTimeout) clearTimeout(this._nameTimeout);
+    if (name !== 'Thám Tử' && name.length >= 2) {
+      this._nameTimeout = setTimeout(async () => {
+        const isTaken = await LeaderboardSync.isNameTaken(name, this.getDeviceId());
+        if (isTaken) {
+          if (errorEl) {
+            errorEl.textContent = '⚠️ Tên này đã có thám tử khác sử dụng!';
+            errorEl.style.display = 'block';
+          }
+          startBtns.forEach(btn => {
+            btn.style.opacity = '0.5';
+            btn.style.pointerEvents = 'none';
+          });
+        } else {
+          if (errorEl) errorEl.style.display = 'none';
+          startBtns.forEach(btn => {
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+          });
+        }
+      }, 500);
+    } else {
       if (errorEl) errorEl.style.display = 'none';
       startBtns.forEach(btn => {
         btn.style.opacity = '1';
         btn.style.pointerEvents = 'auto';
       });
-    }, name === this._currentName ? 0 : 500);
-    
-    this._currentName = name;
+    }
   },
-
   calcGameXP(score, hp, bestStreak, perfectCount) {
     let xp = Math.floor(score / 3);
     if (hp === 3) xp += 20;
@@ -898,45 +904,72 @@ const Game = {
     if (p >= 80) setTimeout(spawnConfetti, 500);
     this.save();
   },
-  async save() {
+  save() {
     const perfectCount = S.qResults.filter(r => r && r.perfect).length;
     const earnedXp = XP.calcGameXP(S.score, S.hp, S.bestStreak, perfectCount);
-    const perfectCasesAdd = perfectCount === S.activeQuestions.length ? 1 : 0;
-    
-    await XP.saveProfile(S.name, earnedXp, S.bestStreak, perfectCasesAdd);
+    XP.saveProfile(S.name, earnedXp);
     XP.renderWelcome(); // Update UI in welcome screen
+    
+    const rec = { name: S.name, date: new Date().toISOString(), score: S.score, qResults: S.qResults, analytics: S.analytics, bestStreak: S.bestStreak, earnedXp: earnedXp };
+    const all = JSON.parse(localStorage.getItem('erase_among') || '[]');
+    all.push(rec); localStorage.setItem('erase_among', JSON.stringify(all.slice(-20)));
   }
 };
 
 /* ══ DASHBOARD ══ */
 const Dashboard = {
-  async init() {
-    const profile = await XP.getProfile(S.name || 'Thám Tử');
-    if (!profile || (profile.total_cases || 0) === 0) {
+  init() {
+    const all = JSON.parse(localStorage.getItem('erase_among') || '[]');
+    const studentHistory = all.filter(g => g.name === (S.name || 'Thám Tử'));
+    
+    if (studentHistory.length === 0) {
       document.getElementById('dp-student-name').textContent = `Thám Tử: ${S.name || 'Mới'}`;
       this.showEmptyState();
       return;
     }
 
-    document.getElementById('dp-student-name').textContent = `Thám Tử: ${profile.name}`;
-    document.getElementById('dp-total').innerHTML = `${profile.xp || 0}<span> XP</span>`;
-    document.getElementById('dp-det-rate').innerHTML = `${profile.total_cases || 0}<span> vụ</span>`;
-    document.getElementById('dp-cor-rate').innerHTML = `${profile.perfect_cases || 0}<span> vụ 3⭐</span>`;
-    document.getElementById('dp-avg-time').textContent = profile.best_streak || '0';
+    const last = studentHistory[studentHistory.length - 1];
+    const data = last;
+    document.getElementById('dp-student-name').textContent = `Thám Tử: ${data.name || S.name}`;
+    this.student(data); this.analytics(data); this.alerts(data);
+  },
+  showEmptyState() {
+    const feedback = document.getElementById('dp-feedback');
+    feedback.innerHTML = `<span style="color:var(--white-ghost); font-weight:400">🕵️‍♂️ Chưa có dữ liệu phá án. Hãy bắt đầu vụ án đầu tiên để xem phân tích!</span>`;
+    document.getElementById('dp-total').innerHTML = `0<span> đ</span>`;
+    document.getElementById('dp-det-rate').innerHTML = `0<span>%</span>`;
+    document.getElementById('dp-cor-rate').innerHTML = `0<span>%</span>`;
+    document.getElementById('dp-avg-time').textContent = '—';
+    document.getElementById('dp-q-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--white-ghost)">Bắt đầu giải đố để thu thập bằng chứng!</td></tr>';
+    document.getElementById('an-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px 20px;"><div style="font-size: 40px; margin-bottom: 10px;">🕵️‍♂️</div><div style="color:var(--yellow); font-weight:700; font-size:16px;">CHƯA CÓ LỊCH SỬ!</div><div style="color:var(--white-ghost); font-size:13px; margin-top:5px; opacity:0.7;">Các thám tử vẫn đang trong quá trình điều tra bí mật...</div></td></tr>`;
+  },
+  student(d) {
+    const qr = d.qResults || []; const n = qr.filter(Boolean).length;
+    document.getElementById('dp-total').innerHTML = `${d.score || 0}<span> đ</span>`;
+    const det = qr.filter(r => r && r.dOk).length, cor = qr.filter(r => r && r.cOk).length;
+    document.getElementById('dp-det-rate').innerHTML = `${pct(det, n || 1)}<span>%</span>`;
+    document.getElementById('dp-cor-rate').innerHTML = `${pct(cor, n || 1)}<span>%</span>`;
+    const tb = document.getElementById('dp-q-tbody'); tb.innerHTML = '';
+    qr.forEach((r, i) => {
+      if (!r) return; const q = S.activeQuestions[i] || QUESTIONS[i] || { topic: '—' };
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${i + 1}</td><td>${q.topic}</td><td class="${r.dOk ? 'td-ok' : 'td-bad'}">${r.dOk ? '✓' : '✗'}</td><td class="${r.cOk ? 'td-ok' : 'td-bad'}">${r.cOk ? '✓' : '✗'}</td><td>${r.total || 0}</td>`;
+      tb.appendChild(tr);
+    });
+    const max = (S.activeQuestions.length || 5) * 25; const p = pct(d.score || 0, max);
+    let lvl, fb;
+    if (p >= 80) { lvl = '<span style="color:var(--yellow);font-weight:800;font-size:14px">👑 THÁM TỬ MVP</span>'; fb = 'Xuất sắc! Kỹ năng phát hiện lỗi đỉnh cao!'; }
+    else if (p >= 50) { lvl = '<span style="color:var(--cyan);font-weight:800;font-size:14px">🌟 SKILLED CREW</span>'; fb = 'Khá tốt! Chú ý thêm dấu khi chuyển vế.'; }
+    else { lvl = '<span style="color:var(--red);font-weight:800;font-size:14px">💀 ROOKIE</span>'; fb = 'Cần ôn thêm: +a → −a, −a → +a khi chuyển vế.'; }
+    document.getElementById('dp-level').innerHTML = lvl;
     
-    // UI Feedback based on XP/Rank
-    const rank = XP.getRank(profile.xp);
-    let fb = '';
-    if (rank.level >= 8) fb = 'Xuất sắc! Kỹ năng phá án ở đẳng cấp huyền thoại!';
-    else if (rank.level >= 5) fb = 'Khá tốt! Bạn đang dần trở thành thám tử chuyên nghiệp.';
-    else fb = 'Hãy tiếp tục rèn luyện để nâng cao kỹ năng phá án nhé!';
-    
-    document.getElementById('dp-level').innerHTML = `<span style="color:${rank.color};font-weight:800;font-size:14px">${rank.emoji} ${rank.name.toUpperCase()}</span>`;
-    document.getElementById('dp-feedback').innerHTML = `<span style="color:var(--white-ghost); font-weight:700">${fb}</span>`;
-
-    // Clear history tables
-    document.getElementById('dp-q-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--white-ghost)">Lịch sử chi tiết đã được đồng bộ lên Database.</td></tr>';
-    document.getElementById('an-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px 20px;"><div style="font-size: 40px; margin-bottom: 10px;">☁️</div><div style="color:var(--yellow); font-weight:700; font-size:16px;">DỮ LIỆU ĐÁM MÂY</div><div style="color:var(--white-ghost); font-size:13px; margin-top:5px; opacity:0.7;">Toàn bộ chỉ số thám tử hiện đang được lưu trữ bảo mật.</div></td></tr>`;
+    // Phân tích điểm yếu theo logic mới
+    const allGames = JSON.parse(localStorage.getItem('erase_among') || '[]');
+    const studentHistory = allGames.filter(g => g.name === d.name);
+    const weakness = GameAnalysis.analyze(studentHistory);
+    document.getElementById('dp-feedback').innerHTML = `<span style="color:${weakness.color}; font-weight:700">${weakness.tag}</span>`;
+    const an = d.analytics || {}; const times = [...(an.dTimes || []), ...(an.cTimes || [])].filter(Boolean);
+    document.getElementById('dp-avg-time').textContent = times.length ? `${Math.round(times.reduce((a, b) => a + b, 0) / times.length)}s/câu` : '—';
   },
   analytics(d) {
     const an = d.analytics || {}; const da = an.dAttempts || []; const ca = an.cAttempts || [];
@@ -1071,22 +1104,24 @@ document.addEventListener('DOMContentLoaded', () => {
    PROFILE SCREEN
 ══════════════════════════════════════════════ */
 const Profile = {
-  async init() {
-    await this.renderStats();
+  init() {
+    this.renderStats();
     this.renderBank();
     this.renderHistory();
   },
 
-  async renderStats() {
+  renderStats() {
     const bank = window._bankQuestions || null;
     document.getElementById('ps-bank-count').innerHTML = `${bank ? bank.length : 5}<span> câu</span>`;
-    
-    const profile = await XP.getProfile(S.name);
-    if (!profile) return;
-
-    document.getElementById('ps-games').innerHTML = `${profile.total_cases || 0}<span> ván</span>`;
-    document.getElementById('ps-best').innerHTML = `${profile.best_streak || 0}<span> combo</span>`;
-    document.getElementById('ps-acc').innerHTML = `${profile.perfect_cases || 0}<span> vụ 3⭐</span>`;
+    const all = JSON.parse(localStorage.getItem('erase_among') || '[]');
+    document.getElementById('ps-games').innerHTML = `${all.length}<span> ván</span>`;
+    const best = all.reduce((m, r) => Math.max(m, r.score || 0), 0);
+    document.getElementById('ps-best').innerHTML = `${best}<span> đ</span>`;
+    const acc = all.length ? Math.round(all.map(r => {
+      const qr = r.qResults || []; const n = qr.filter(Boolean).length || 1;
+      return (qr.filter(x => x && x.dOk).length + qr.filter(x => x && x.cOk).length) / (n * 2) * 100;
+    }).reduce((a, b) => a + b, 0) / all.length) : 0;
+    document.getElementById('ps-acc').innerHTML = `${acc}<span>%</span>`;
   },
 
   renderBank() {
@@ -1133,12 +1168,26 @@ const Profile = {
   },
 
   renderHistory() {
-    // Lịch sử chi tiết tạm thời tắt khi chuyển sang Database
+    const all = JSON.parse(localStorage.getItem('erase_among') || '[]');
     const tbody = document.getElementById('history-tbody');
     const empty = document.getElementById('history-empty');
-    tbody.innerHTML = ''; 
-    empty.style.display = 'block';
-    empty.textContent = 'Dữ liệu lịch sử đã được chuyển lên đám mây. ☁️';
+    if (!all.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    tbody.innerHTML = [...all].reverse().slice(0, 20).map((r, i) => {
+      const p = Math.round((r.score || 0) / ((r.qResults || []).filter(Boolean).length || 5) / 25 * 100);
+      const grade = p >= 95 ? 'S' : p >= 80 ? 'A' : p >= 65 ? 'B' : p >= 50 ? 'C' : p >= 35 ? 'D' : 'F';
+      const streak = r.analytics?.bestStreak || 0;
+      const dt = new Date(r.date).toLocaleDateString('vi-VN');
+      return `<tr>
+        <td style="color:var(--white-ghost)">${i + 1}</td>
+        <td>${dt}</td>
+        <td style="color:var(--white)">${r.name || '—'}</td>
+        <td style="font-family:var(--font-title);font-size:18px;color:var(--yellow)">${r.score || 0}</td>
+        <td class="${p >= 60 ? 'td-ok' : p >= 40 ? 'td-warn' : 'td-bad'}">${p}%</td>
+        <td style="color:var(--yellow)">${streak > 0 ? '🔥' + streak : '—'}</td>
+        <td style="font-family:var(--font-title);font-size:16px;color:${grade === 'S' ? '#ffd700' : grade === 'A' ? 'var(--yellow)' : grade === 'B' ? 'var(--cyan)' : grade === 'C' ? 'var(--green)' : 'var(--red)'}">${grade}</td>
+      </tr>`;
+    }).join('');
   },
 
   handleFile(e) {
@@ -1997,6 +2046,11 @@ const RoomStudent = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+  const savedName = localStorage.getItem('erase_player_name');
+  if (savedName) {
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) nameInput.value = savedName;
+  }
   XP.renderWelcome();
 });
 

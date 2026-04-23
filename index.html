@@ -137,16 +137,9 @@
       
       let arr = [];
       try {
-        if (typeof LeaderboardSync !== 'undefined' && LeaderboardSync.enabled) {
-          const cloudData = await LeaderboardSync.fetchScores();
-          if (cloudData === null) throw new Error("Cloud Error");
-          arr = cloudData;
-        } else {
-          let profiles = {};
-          try { profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}'); } catch(e) {}
-          arr = Object.entries(profiles).map(([name, p]) => ({ name, xp: p.xp||0 }));
-          arr.sort((a, b) => b.xp - a.xp);
-        }
+        const cloudData = await LeaderboardSync.fetchScores();
+        if (cloudData === null) throw new Error("Cloud Error");
+        arr = cloudData;
       } catch(e) {
         console.error("Leaderboard Error:", e);
         list.innerHTML = `
