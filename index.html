@@ -245,7 +245,7 @@
             </div>
             <div class="host-setting-row">
               <span class="hsr-label">SỐ CÂU:</span>
-              <input type="number" class="hsr-input" id="host-q-count" min="1" max="20" value="5">
+              <input type="number" class="hsr-input" id="host-q-count" min="1" max="20" value="7">
               <span class="hsr-note" id="host-q-note">/ 5 câu có sẵn</span>
             </div>
             <button class="btn-lobby btn-host-start" onclick="Lobby.startHost()">
@@ -491,6 +491,7 @@
               📁 Upload file JSON
             </label>
             <button class="btn-paste" onclick="Profile.togglePaste()">📋 Dán JSON</button>
+            <button class="btn-sync" onclick="Profile.syncCloud()" id="btn-sync-bank">☁️ Đồng bộ Cloud</button>
             <button class="btn-clear-bank" onclick="Profile.clearBank()" id="btn-clear-bank" style="display:none">🗑 Xóa hết</button>
           </div>
         </div>
@@ -517,7 +518,7 @@
             <span style="font-size:12px;font-weight:700;color:var(--white-ghost)" id="bank-count-label">Đang dùng đề mặc định (5 câu)</span>
             <div style="display:flex;align-items:center;gap:8px">
               <label style="font-size:12px;font-weight:700;color:var(--white-dim)">Số câu mỗi ván:</label>
-              <input type="number" id="profile-q-count" min="1" max="20" value="5"
+              <input type="number" id="profile-q-count" min="1" max="20" value="7"
                 style="width:56px;background:var(--space);border:2px solid var(--border);border-radius:6px;font-size:14px;font-weight:700;color:var(--white);padding:4px 8px;outline:none;text-align:center"
                 oninput="Profile.updateQCount()">
             </div>

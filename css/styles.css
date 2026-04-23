@@ -5751,3 +5751,55 @@ body::before {
     font-size: 15px
   }
 }
+
+/* ══ BANK ACTIONS ══ */
+.btn-upload, .btn-paste, .btn-sync, .btn-clear-bank {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid var(--border);
+  background: var(--space2);
+  color: var(--white-dim);
+}
+
+.btn-upload:hover, .btn-paste:hover, .btn-sync:hover {
+  border-color: var(--yellow);
+  color: var(--yellow);
+  background: var(--yellow-bg);
+  transform: translateY(-1px);
+}
+
+.btn-sync {
+  background: var(--cyan-bg);
+  border-color: rgba(120, 0, 0, 0.2);
+  color: var(--cyan);
+}
+
+.btn-sync:hover {
+  background: rgba(120, 0, 0, 0.1);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.btn-clear-bank {
+  border-color: rgba(193, 18, 31, 0.2);
+  color: var(--red);
+}
+
+.btn-clear-bank:hover {
+  background: var(--red-bg);
+  border-color: var(--red);
+}
+
+.btn-sync:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}

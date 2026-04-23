@@ -1,92 +1,8 @@
 /* ══ QUESTIONS ══ */
-const QUESTIONS = [
-  {
-    id: 1, difficulty: 'easy', diffLabel: 'DỄ', topic: 'Phương trình bậc nhất',
-    problem: 'Giải phương trình: <span class="eq-block">2x + 5 = 13</span> — Impostor đã sai dấu!',
-    hint: 'Khi chuyển <strong>+5</strong> sang vế phải, dấu phải đổi thành <strong>−5</strong>.',
-    rule: '📌 Quy tắc: <strong>+a → −a</strong>, <strong>−a → +a</strong> khi chuyển vế!',
-    errExp: 'Bước chuyển vế giữ nguyên dấu +5 thay vì đổi thành −5. Đúng: 2x = 13 − 5 = 8 → <strong>x = 4</strong>.',
-    steps: [
-      { id: 's1', label: '[GỐC]', tokens: [{ id: 't11', tx: '2x', tp: 'var' }, { id: 't12', tx: '+', tp: 'op' }, { id: 't13', tx: '5', tp: 'num' }, { id: 't14', tx: '=', tp: 'eq' }, { id: 't15', tx: '13', tp: 'num' }] },
-      { id: 's2', label: '[CV]', tokens: [{ id: 't21', tx: '2x', tp: 'var' }, { id: 't22', tx: '=', tp: 'eq' }, { id: 't23', tx: '13', tp: 'num' }, { id: 't24', tx: '+', tp: 'op', err: true }, { id: 't25', tx: '5', tp: 'num' }] },
-      { id: 's3', label: '[TÍNH]', tokens: [{ id: 't31', tx: '2x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '18', tp: 'num', err: true }] },
-      { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '9', tp: 'num', err: true }] }
-    ], errTokens: ['t24', 't33'], primaryErr: ['t24'], errorType: 'chuyenVe',
-    correction: {
-      type: 'symbol', question: 'Dấu <strong>+</strong> ở bước chuyển vế phải thay bằng dấu gì?', wrongExpr: '2x = 13 <mark>+</mark> 5', symbols: ['+', '−', '×', '÷'], correct: '−',
-      exp: '<strong>+5</strong> chuyển sang vế phải → <strong>−5</strong>. Vậy: 2x = 13−5=8 → <strong>x=4</strong>.'
-    }
-  },
-  {
-    id: 2, difficulty: 'easy', diffLabel: 'DỄ', topic: 'Phương trình bậc nhất',
-    problem: 'Giải phương trình: <span class="eq-block">3x − 7 = 2</span> — Ai đó đã giả mạo dấu!',
-    hint: 'Khi chuyển <strong>−7</strong> sang vế phải, dấu <strong>−</strong> đổi thành <strong>+</strong>.',
-    rule: '📌 Dấu <strong>−</strong> khi chuyển vế phải trở thành <strong>+</strong>. Đừng giữ nguyên!',
-    errExp: 'Bước chuyển vế viết 2 − 7 là sai. −7 chuyển sang phải → +7. Đúng: 3x=2+7=9 → <strong>x=3</strong>.',
-    steps: [
-      { id: 's1', label: '[GỐC]', tokens: [{ id: 't11', tx: '3x', tp: 'var' }, { id: 't12', tx: '−', tp: 'op' }, { id: 't13', tx: '7', tp: 'num' }, { id: 't14', tx: '=', tp: 'eq' }, { id: 't15', tx: '2', tp: 'num' }] },
-      { id: 's2', label: '[CV]', tokens: [{ id: 't21', tx: '3x', tp: 'var' }, { id: 't22', tx: '=', tp: 'eq' }, { id: 't23', tx: '2', tp: 'num' }, { id: 't24', tx: '−', tp: 'op', err: true }, { id: 't25', tx: '7', tp: 'num' }] },
-      { id: 's3', label: '[TÍNH]', tokens: [{ id: 't31', tx: '3x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '−5', tp: 'num', err: true }] },
-      { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '−5/3', tp: 'num', err: true }] }
-    ], errTokens: ['t24', 't33'], primaryErr: ['t24'], errorType: 'chuyenVe',
-    correction: {
-      type: 'symbol', question: 'Dấu <strong>−</strong> ở bước chuyển vế phải thay bằng dấu gì?', wrongExpr: '3x = 2 <mark>−</mark> 7', symbols: ['+', '−', '×', '÷'], correct: '+',
-      exp: '<strong>−7</strong> chuyển sang phải → <strong>+7</strong>. Vậy: 3x=2+7=9 → <strong>x=3</strong>.'
-    }
-  },
-  {
-    id: 3, difficulty: 'medium', diffLabel: 'TRUNG BÌNH', topic: 'Phương trình hai vế có ẩn',
-    problem: 'Giải phương trình: <span class="eq-block">5x + 3 = 2x − 9</span> — Có kẻ đã sai 1 dấu khi chuyển vế!',
-    hint: 'Khi chuyển <strong>+3</strong> sang vế phải, dấu phải đổi thành <strong>−3</strong>.',
-    rule: '📌 Mỗi hạng tử khi chuyển vế đều phải <strong>đổi dấu riêng</strong>!',
-    errExp: '+3 chuyển sang phải → −3. Đúng: 5x−2x=−9−3=−12 → <strong>x=−4</strong>.',
-    steps: [
-      { id: 's1', label: '[GỐC]', tokens: [{ id: 't11', tx: '5x', tp: 'var' }, { id: 't12', tx: '+', tp: 'op' }, { id: 't13', tx: '3', tp: 'num' }, { id: 't14', tx: '=', tp: 'eq' }, { id: 't15', tx: '2x', tp: 'var' }, { id: 't16', tx: '−', tp: 'op' }, { id: 't17', tx: '9', tp: 'num' }] },
-      { id: 's2', label: '[CV]', tokens: [{ id: 't21', tx: '5x', tp: 'var' }, { id: 't22', tx: '−', tp: 'op' }, { id: 't23', tx: '2x', tp: 'var' }, { id: 't24', tx: '=', tp: 'eq' }, { id: 't25', tx: '−9', tp: 'num' }, { id: 't26', tx: '+', tp: 'op', err: true }, { id: 't27', tx: '3', tp: 'num' }] },
-      { id: 's3', label: '[GỌN]', tokens: [{ id: 't31', tx: '3x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '−6', tp: 'num', err: true }] },
-      { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '−2', tp: 'num', err: true }] }
-    ], errTokens: ['t26', 't33'], primaryErr: ['t26'], errorType: 'chuyenVe',
-    correction: {
-      type: 'symbol', question: 'Dấu <strong>+</strong> trước 3 ở vế phải phải thay bằng dấu gì?', wrongExpr: '5x − 2x = −9 <mark>+</mark> 3', symbols: ['+', '−', '×', '÷'], correct: '−',
-      exp: '<strong>+3</strong> chuyển sang phải → <strong>−3</strong>. Vậy: 3x=−9−3=−12 → <strong>x=−4</strong>.'
-    }
-  },
-  {
-    id: 4, difficulty: 'medium', diffLabel: 'TRUNG BÌNH', topic: 'Phương trình có dấu ngoặc',
-    problem: 'Giải phương trình: <span class="eq-block">2(x − 3) = 4</span> — Impostor bỏ ngoặc sai rồi!',
-    hint: 'Bỏ ngoặc: nhân hệ số với <strong>tất cả</strong> hạng tử trong ngoặc!',
-    rule: '📌 <strong>a(b−c) = a·b − a·c</strong> — nhân với MỌI hạng tử!',
-    errExp: '2(x−3) phải = 2x−6, không phải 2x−3. Đúng: 2x−6=4 → 2x=10 → <strong>x=5</strong>.',
-    steps: [
-      { id: 's1', label: '[GỐC]', tokens: [{ id: 't11', tx: '2(x−3)', tp: 'expr' }, { id: 't12', tx: '=', tp: 'eq' }, { id: 't13', tx: '4', tp: 'num' }] },
-      { id: 's2', label: '[BỎ()]', tokens: [{ id: 't21', tx: '2x', tp: 'var' }, { id: 't22', tx: '−', tp: 'op' }, { id: 't23', tx: '3', tp: 'num', err: true }, { id: 't24', tx: '=', tp: 'eq' }, { id: 't25', tx: '4', tp: 'num' }] },
-      { id: 's3', label: '[CV]', tokens: [{ id: 't31', tx: '2x', tp: 'var' }, { id: 't32', tx: '=', tp: 'eq' }, { id: 't33', tx: '4', tp: 'num' }, { id: 't34', tx: '+', tp: 'op' }, { id: 't35', tx: '3', tp: 'num', err: true }] },
-      { id: 's4', label: '[KQ]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '3.5', tp: 'num', err: true }] }
-    ], errTokens: ['t23', 't35'], primaryErr: ['t23'], errorType: 'thuTu',
-    correction: {
-      type: 'text', question: '2(x−3) bỏ ngoặc ra bằng gì? (vd: 2x-6)', wrongExpr: '<mark>2x − 3</mark> = 4', correctAnswers: ['2x-6', '2x - 6'], displayCorrect: '2x − 6 = 4',
-      exp: '2×(x−3) = <strong>2x−6</strong>. Vậy: 2x−6=4 → 2x=10 → <strong>x=5</strong>.'
-    }
-  },
-  {
-    id: 5, difficulty: 'hard', diffLabel: 'KHÓ', topic: 'Dấu trừ trước ngoặc',
-    problem: 'Giải phương trình: <span class="eq-block">3x+2 = x−(4−x)</span> — Impostor ẩn sâu nhất! 👀',
-    hint: 'Dấu <strong>−</strong> trước ngoặc: <strong>đổi dấu TẤT CẢ</strong> bên trong!',
-    rule: '📌 <strong>−(a−b) = −a+b</strong> — dấu trừ đảo hết dấu trong ngoặc!',
-    errExp: '−(4−x) = −4+x (không phải −4−x). Đúng: 3x+2=x−4+x → x=−6.',
-    steps: [
-      { id: 's1', label: '[GỐC]', tokens: [{ id: 't11', tx: '3x', tp: 'var' }, { id: 't12', tx: '+', tp: 'op' }, { id: 't13', tx: '2', tp: 'num' }, { id: 't14', tx: '=', tp: 'eq' }, { id: 't15', tx: 'x', tp: 'var' }, { id: 't16', tx: '−', tp: 'op' }, { id: 't17', tx: '(4−x)', tp: 'expr' }] },
-      { id: 's2', label: '[BỎ()]', tokens: [{ id: 't21', tx: '3x', tp: 'var' }, { id: 't22', tx: '+', tp: 'op' }, { id: 't23', tx: '2', tp: 'num' }, { id: 't24', tx: '=', tp: 'eq' }, { id: 't25', tx: 'x', tp: 'var' }, { id: 't26', tx: '−', tp: 'op' }, { id: 't27', tx: '4', tp: 'num' }, { id: 't28', tx: '−', tp: 'op', err: true }, { id: 't29', tx: 'x', tp: 'var' }] },
-      { id: 's3', label: '[CV]', tokens: [{ id: 't31', tx: '3x', tp: 'var' }, { id: 't32', tx: '−', tp: 'op' }, { id: 't33', tx: 'x', tp: 'var' }, { id: 't34', tx: '−', tp: 'op' }, { id: 't35', tx: 'x', tp: 'var', err: true }, { id: 't36', tx: '=', tp: 'eq' }, { id: 't37', tx: '−4', tp: 'num' }, { id: 't38', tx: '−', tp: 'op' }, { id: 't39', tx: '2', tp: 'num' }] },
-      { id: 's4', label: '[GỌN]', tokens: [{ id: 't41', tx: 'x', tp: 'var' }, { id: 't42', tx: '=', tp: 'eq' }, { id: 't43', tx: '−6', tp: 'num', err: true }] },
-      { id: 's5', label: '[KQ]', tokens: [{ id: 't51', tx: 'x', tp: 'var' }, { id: 't52', tx: '=', tp: 'eq' }, { id: 't53', tx: '−6', tp: 'num', err: true }] }
-    ], errTokens: ['t28', 't35'], primaryErr: ['t28'], errorType: 'thuTu',
-    correction: {
-      type: 'symbol', question: 'Dấu <strong>−</strong> trước x sau khi bỏ ngoặc phải là dấu gì?', wrongExpr: 'x − 4 <mark>−</mark> x', symbols: ['+', '−', '×', '÷'], correct: '+',
-      exp: '−(4−x) = −4<strong>+x</strong>. Vậy: 3x+2=x−4+x → x=−6.'
-    }
-  }
-];
+// Đã chuyển lên Database (Supabase). Code cũ đã được xóa.
+
+
+
 
 /* ══ BRIEFING TEXTS ══ */
 const BRIEFS = [
@@ -97,6 +13,120 @@ const BRIEFS = [
   "💀 FINAL TASK! Impostor khó nhất đang ẩn náu trong dấu trừ trước ngoặc. Quy tắc: −(a−b) = −a+b. Đây là vụ cuối — không được sai!",
 ];
 const CREW_EMOJIS = ['🕵️', '🔍', '📁', '🗝️', '💼', '🔦', '📋', '🧩'];
+
+/* ══ QUESTION MANAGER ══ */
+const QuestionManager = {
+  bank: [],
+  
+  async init() {
+    // 1. Try to load from localStorage for instant start
+    const saved = localStorage.getItem('erase_question_bank');
+    if (saved) {
+      try {
+        this.bank = JSON.parse(saved);
+        window._bankQuestions = this.bank;
+      } catch (e) {}
+    }
+
+    // 2. Try to sync from Cloud (Supabase) in background
+    try {
+      const cloudData = await CloudBank.fetchAll();
+      if (cloudData && cloudData.length > 0) {
+        this.bank = CloudBank.mapFromDB(cloudData);
+        window._bankQuestions = this.bank;
+        localStorage.setItem('erase_question_bank', JSON.stringify(this.bank));
+        console.log(`Synced ${this.bank.length} questions from Cloud.`);
+        
+        // Update UI if on Profile screen
+        if (typeof Profile !== 'undefined' && Profile.renderBank) {
+          Profile.renderBank();
+        }
+      }
+    } catch (e) {
+      console.error('Initial Cloud Sync failed:', e);
+    }
+  },
+
+  async save(data) {
+    this.bank = data;
+    window._bankQuestions = data;
+    // Save to local for backup
+    localStorage.setItem('erase_question_bank', JSON.stringify(data));
+    
+    // Push to Cloud
+    try {
+      await CloudBank.pushAll(data);
+      toast('✓ Đã lưu lên Database thành công!', 'correct');
+    } catch (e) {
+      console.error('Failed to save to Cloud:', e);
+      toast('Lưu Database thất bại, đã lưu tạm ở máy.', 'warn');
+    }
+  },
+
+  clear() {
+    this.bank = [];
+    window._bankQuestions = null;
+    localStorage.removeItem('erase_question_bank');
+  },
+
+  getQuestions(totalCount) {
+    const pool = this.bank;
+    if (pool.length === 0) {
+      toast('Ngân hàng đề trống! Hãy nạp đề ở phần Hồ Sơ.', 'warn');
+      return [];
+    }
+
+    // Group by difficulty
+    const easy = pool.filter(q => q.difficulty === 'easy');
+    const medium = pool.filter(q => q.difficulty === 'medium');
+    const hard = pool.filter(q => q.difficulty === 'hard');
+
+    // Calculate target counts (50% / 30% / 20%)
+    let nEasy = Math.max(1, Math.round(totalCount * 0.5));
+    let nMedium = Math.max(1, Math.round(totalCount * 0.3));
+    let nHard = totalCount - nEasy - nMedium;
+
+    // Safety adjustment if groups are empty
+    const select = (group, count) => {
+      const shuffled = [...group].sort(() => Math.random() - 0.5);
+      // Try to get unique topics if possible
+      const selected = [];
+      const topics = new Set();
+      
+      // First pass: unique topics
+      for (const q of shuffled) {
+        if (selected.length < count && !topics.has(q.topic)) {
+          selected.push(q);
+          topics.add(q.topic);
+        }
+      }
+      
+      // Second pass: fill remaining
+      for (const q of shuffled) {
+        if (selected.length < count && !selected.includes(q)) {
+          selected.push(q);
+        }
+      }
+      return selected;
+    };
+
+    let result = [];
+    result = result.concat(select(easy, nEasy));
+    result = result.concat(select(medium, nMedium));
+    result = result.concat(select(hard, nHard));
+
+    // Final fallback: if result is too short, fill with any remaining questions
+    if (result.length < totalCount) {
+      const remaining = pool.filter(q => !result.includes(q));
+      const extra = [...remaining].sort(() => Math.random() - 0.5).slice(0, totalCount - result.length);
+      result = result.concat(extra);
+    }
+
+    // Shuffle final set
+    return result.sort(() => Math.random() - 0.5).slice(0, totalCount);
+  }
+};
+QuestionManager.init();
 
 /* ══ XP SYSTEM ══ */
 const XP_RANKS = [
@@ -782,10 +812,11 @@ const Game = {
     S.analytics = { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] };
     S.active = true;
     HP.reset(); Streak.reset();
-    const pool = window._bankQuestions || QUESTIONS;
-    const count = window._bankQCount || Math.min(5, pool.length);
-    const shuffled = [...pool].sort(() => Math.random() - .5);
-    S.activeQuestions = shuffled.slice(0, Math.min(count, shuffled.length));
+    
+    // Determine question count (default 5-8 range as requested)
+    const count = window._bankQCount || (6 + Math.floor(Math.random() * 3)); // Random 6-8 if not set
+    S.activeQuestions = QuestionManager.getQuestions(count);
+    
     showScreen('screen-game');
     Briefing.show(0, S.activeQuestions[0]).then(() => renderQ(0));
   },
@@ -1191,6 +1222,60 @@ document.addEventListener('DOMContentLoaded', () => {
 ══════════════════════════════════════════════ */
 
 
+/* ══ CLOUD BANK (Supabase) ══ */
+const CloudBank = {
+  async fetchAll() {
+    if (!LeaderboardSync.enabled || !window.supabase) return null;
+    LeaderboardSync.init();
+    try {
+      const { data, error } = await LeaderboardSync.client
+        .from('questions')
+        .select('*')
+        .order('id', { ascending: true });
+      if (error) {
+        console.error('Supabase Question Fetch Error:', error.message);
+        return null;
+      }
+      return data;
+    } catch (e) {
+      console.error('CloudBank Fetch Error:', e);
+      return null;
+    }
+  },
+
+  async pushAll(questions) {
+    if (!LeaderboardSync.enabled || !window.supabase) return;
+    LeaderboardSync.init();
+    
+    // Prepare for DB: stringify JSON fields
+    const toPush = questions.map(q => ({
+      ...q,
+      steps: typeof q.steps !== 'string' ? JSON.stringify(q.steps) : q.steps,
+      errTokens: typeof q.errTokens !== 'string' ? JSON.stringify(q.errTokens) : q.errTokens,
+      primaryErr: typeof q.primaryErr !== 'string' ? JSON.stringify(q.primaryErr) : q.primaryErr,
+      correction: typeof q.correction !== 'string' ? JSON.stringify(q.correction) : q.correction,
+    }));
+
+    const { error } = await LeaderboardSync.client
+      .from('questions')
+      .upsert(toPush, { onConflict: 'id' });
+
+    if (error) throw error;
+  },
+
+  mapFromDB(data) {
+    return data.map(q => ({
+      ...q,
+      difficulty: q.difficulty || 'easy',
+      topic: q.topic || 'Toán học',
+      steps: typeof q.steps === 'string' ? JSON.parse(q.steps) : q.steps,
+      errTokens: typeof q.errTokens === 'string' ? JSON.parse(q.errTokens) : q.errTokens,
+      primaryErr: typeof q.primaryErr === 'string' ? JSON.parse(q.primaryErr) : q.primaryErr,
+      correction: typeof q.correction === 'string' ? JSON.parse(q.correction) : q.correction,
+    }));
+  }
+};
+
 /* ══════════════════════════════════════════════
    PROFILE SCREEN
 ══════════════════════════════════════════════ */
@@ -1268,7 +1353,7 @@ const Profile = {
   handleFile(e) {
     const f = e.target.files[0]; if (!f) return;
     const r = new FileReader();
-    r.onload = ev => this.applyJSON(ev.target.result, f.name);
+    r.onload = async ev => await this.applyJSON(ev.target.result, f.name);
     r.readAsText(f);
   },
 
@@ -1278,11 +1363,11 @@ const Profile = {
     if (p.classList.contains('show')) document.getElementById('profile-paste-area').focus();
   },
 
-  applyPaste() {
-    this.applyJSON(document.getElementById('profile-paste-area').value);
+  async applyPaste() {
+    await this.applyJSON(document.getElementById('profile-paste-area').value);
   },
 
-  applyJSON(str, filename) {
+  async applyJSON(str, filename) {
     const vEl = document.getElementById('paste-validation');
     vEl.style.display = 'none';
     try {
@@ -1291,8 +1376,9 @@ const Profile = {
       const req = ['id', 'topic', 'problem', 'steps', 'errTokens', 'primaryErr', 'correction'];
       const miss = req.filter(k => !data[0].hasOwnProperty(k));
       if (miss.length) throw new Error('Thiếu trường: ' + miss.join(', '));
-      window._bankQuestions = data;
-      window._bankQCount = Math.min(parseInt(document.getElementById('profile-q-count').value) || 5, data.length);
+      
+      await QuestionManager.save(data);
+      window._bankQCount = Math.min(parseInt(document.getElementById('profile-q-count').value) || 7, data.length);
       vEl.style.display = 'block';
       vEl.style.background = 'rgba(46,213,115,.08)'; vEl.style.borderLeftColor = 'var(--green)';
       vEl.style.color = 'var(--green)';
@@ -1329,14 +1415,43 @@ const Profile = {
 
   clearBank() {
     if (!confirm('Xóa toàn bộ ngân hàng đề tùy chỉnh? Sẽ về đề mặc định.')) return;
-    window._bankQuestions = null; window._bankQCount = null;
+    QuestionManager.clear();
+    window._bankQCount = null;
     const b = document.getElementById('bank-mode-badge');
     const s = document.getElementById('wf-bank-status');
     if (b) b.innerHTML = '📁';
     if (s) s.textContent = 'Ngân hàng: Mặc định (5 câu)';
-    document.getElementById('profile-q-count').value = 5;
+    document.getElementById('profile-q-count').value = 7;
     this.renderBank(); this.renderStats();
     toast('Đã xóa ngân hàng tùy chỉnh', '');
+  },
+
+  async syncCloud() {
+    const btn = document.getElementById('btn-sync-bank');
+    if (!btn) return;
+    btn.disabled = true;
+    const oldText = btn.innerHTML;
+    btn.innerHTML = '⌛ Đang tải...';
+    
+    try {
+      const data = await CloudBank.fetchAll();
+      if (data && data.length > 0) {
+        const mapped = CloudBank.mapFromDB(data);
+        QuestionManager.save(mapped); // This will also save to local
+        this.renderBank();
+        this.renderStats();
+        this.updateWelcomeBadge(mapped.length);
+        toast(`✓ Đồng bộ thành công ${mapped.length} câu!`, 'correct');
+      } else {
+        toast('Không tìm thấy dữ liệu trên Cloud.', 'warn');
+      }
+    } catch (e) {
+      console.error(e);
+      toast('Lỗi đồng bộ: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldText;
+    }
   }
 };
 
@@ -1348,7 +1463,7 @@ const Profile = {
 ══════════════════════════════════════════════════════════════ */
 const Lobby = {
   init() {
-    const pool = window._bankQuestions || QUESTIONS;
+    const pool = window._bankQuestions || [];
     document.getElementById('host-q-count').max = pool.length;
     document.getElementById('host-q-note').textContent = `/ ${pool.length} câu có sẵn`;
   },
@@ -1391,9 +1506,7 @@ const RoomHost = {
   timer: null, elapsed: 0,
 
   init(qCount) {
-    const pool = window._bankQuestions || QUESTIONS;
-    const shuffled = [...pool].sort(() => Math.random() - .5);
-    this.activeQuestions = shuffled.slice(0, Math.min(qCount, shuffled.length));
+    this.activeQuestions = QuestionManager.getQuestions(qCount);
     this.qIdx = 0; this.gameStarted = false;
     this.conns = {};
 
@@ -2122,5 +2235,6 @@ const RoomStudent = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
   XP.renderWelcome();
+  QuestionManager.init();
 });
 
