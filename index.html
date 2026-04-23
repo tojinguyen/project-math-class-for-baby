@@ -94,17 +94,19 @@
       <span class="wf-link" onclick="showLeaderboard()">🏅 Leader Board</span>
       <span class="wf-sep">·</span>
       <span class="wf-link" id="wf-bank-status">Ngân hàng: Mặc định (5 câu)</span>
-      <!-- ══ LEADERBOARD MODAL ══ -->
-      <div id="leaderboard-modal" style="display:none;position:fixed;z-index:1000;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;">
-        <div style="background:var(--space2,#232946);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:32px 24px 24px 24px;min-width:320px;max-width:95vw;max-height:90vh;overflow:auto;position:relative;">
-          <button onclick="closeLeaderboard()" style="position:absolute;top:12px;right:16px;font-size:22px;background:none;border:none;color:var(--white-ghost);cursor:pointer">✕</button>
-          <div style="font-size:26px;font-family:var(--font-title);font-weight:900;text-align:center;margin-bottom:18px;color:var(--yellow)">🏅 BẢNG XẾP HẠNG TỰ LUYỆN</div>
+      <!-- ══ LEADERBOARD SCREEN ══ -->
+      <div id="screen-leaderboard" class="screen">
+        <div style="max-width:700px;margin:40px auto 0 auto;padding:32px 18px 24px 18px;background:var(--space2,#232946);border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,0.10);position:relative;">
+          <div style="font-size:32px;font-family:var(--font-title);font-weight:900;text-align:center;margin-bottom:18px;color:var(--yellow)">🏅 BẢNG XẾP HẠNG TỰ LUYỆN</div>
           <div id="leaderboard-list"></div>
+          <div style="text-align:center;margin-top:24px;">
+            <button class="btn-secondary" onclick="showScreen('screen-welcome')">← Quay lại menu</button>
+          </div>
         </div>
       </div>
       <script>
       function showLeaderboard() {
-        const modal = document.getElementById('leaderboard-modal');
+        showScreen('screen-leaderboard');
         const list = document.getElementById('leaderboard-list');
         // Lấy dữ liệu từ localStorage
         let profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}');
@@ -211,10 +213,6 @@
         }
         html += '</tbody></table>';
         list.innerHTML = html;
-        modal.style.display = 'flex';
-      }
-      function closeLeaderboard() {
-        document.getElementById('leaderboard-modal').style.display = 'none';
       }
       </script>
     </div>
