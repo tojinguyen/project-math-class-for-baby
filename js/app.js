@@ -112,18 +112,97 @@ const XP_RANKS = [
   { level: 10, name: 'Thám Tử Huyền Thoại', emoji: '👑', color: '#8c0f1e', required: 9000, next: 0 },
 ];
 
+/* ══ SHARED LEADERBOARD SYNC (Supabase) ══ */
+const LeaderboardSync = {
+  enabled: true, 
+  supabaseUrl: 'https://eehegsaxegizcynygafk.supabase.co',
+  supabaseKey: 'sb_publishable_TCp4sVa3hV9LFTulbcUOMQ_8iGyibUh',
+
+  async uploadScore(id, name, xp) {
+    if (!this.enabled || !window.supabase) return;
+    try {
+      const { createClient } = window.supabase;
+      const client = createClient(this.supabaseUrl, this.supabaseKey);
+      await client.from('leaderboard').upsert({ id, name, xp, updated_at: new Date().toISOString() });
+    } catch(e) { console.error('Supabase Sync Error:', e); }
+  },
+
+  async fetchScores() {
+    if (!this.enabled || !window.supabase) return null;
+    try {
+      const { createClient } = window.supabase;
+      const client = createClient(this.supabaseUrl, this.supabaseKey);
+      const { data } = await client.from('leaderboard').select('*').order('xp', { ascending: false }).limit(20);
+      return data;
+    } catch(e) { return null; }
+  }
+};
+
+/* ══ GAME ANALYSIS ENGINE ══ */
+const GameAnalysis = {
+  analyze(games) {
+    if (!games || !games.length) return { tag: '✅ Không điểm yếu', color: '#2ed573' };
+    let totalGames = games.length, totalQ = 0, dFailBoth = 0, cFailBoth = 0, totalWrongClicks = 0, fastAndWrong = 0;
+    let subjectStats = {
+      chuyenVe: { count: 0, fail: 0, label: '🔴 Sai quy tắc chuyển vế', color: '#e74c3c' },
+      tinhToan: { count: 0, fail: 0, label: '🔴 Sai tính toán', color: '#e67e22' },
+      thuTu: { count: 0, fail: 0, label: '🔴 Sai thứ tự phép tính', color: '#9b59b6' }
+    };
+    games.forEach(g => {
+      let qrs = g.qResults || [], an = g.analytics || {}, dAtt = an.dAttempts || [], cAtt = an.cAttempts || [], 
+          wClicks = an.wrongClicks || [], dTimes = an.dTimes || [], activeQs = g.activeQuestions || [];
+      qrs.forEach((qr, i) => {
+        if (!qr) return; totalQ++;
+        if (dAtt[i] === 'X') dFailBoth++;
+        if (cAtt[i] === 'X') cFailBoth++;
+        totalWrongClicks += (wClicks[i] || 0);
+        if ((dTimes[i] || 99) < 8 && (!qr.dOk || !qr.cOk)) fastAndWrong++;
+        let q = activeQs[i] || {}, et = q.errorType;
+        if (et && subjectStats[et]) { subjectStats[et].count++; if (!qr.dOk || !qr.cOk) subjectStats[et].fail++; }
+      });
+    });
+    let pct = (v, t) => t ? (v / t * 100) : 0;
+    let subjectResults = Object.keys(subjectStats).map(k => {
+      let s = subjectStats[k]; let score = s.count >= 2 ? pct(s.fail, s.count) : 0; return { ...s, score };
+    }).filter(s => s.score >= 40);
+    let behaviorResults = [
+      { score: pct(dFailBoth, totalQ), label: '🔴 Hay bỏ sót lỗi', color: '#e74c3c', thresholdMet: pct(dFailBoth, totalQ) >= 30 },
+      { score: pct(cFailBoth, totalQ), label: '🟠 Hay sửa sai', color: '#e67e22', thresholdMet: pct(cFailBoth, totalQ) >= 30 },
+      { score: (totalWrongClicks / totalGames), label: '🟣 Click nhầm nhiều', color: '#8e44ad', thresholdMet: (totalWrongClicks / totalGames >= 2.5) },
+      { score: fastAndWrong, label: '🔵 Đoán nhanh, sai nhiều', color: '#2980b9', thresholdMet: (fastAndWrong >= 2) }
+    ];
+    let validBehaviors = behaviorResults.filter(b => b.thresholdMet);
+    if (subjectResults.length) {
+      subjectResults.sort((a, b) => b.score - a.score);
+      return { tag: `${subjectResults[0].label} (${Math.round(subjectResults[0].score)}%)`, color: subjectResults[0].color };
+    }
+    if (validBehaviors.length) {
+      validBehaviors.sort((a, b) => b.score - a.score);
+      return { tag: `${validBehaviors[0].label}`, color: validBehaviors[0].color };
+    }
+    return { tag: '✅ Không điểm yếu', color: '#2ed573' };
+  }
+};
+
 const XP = {
   getProfile(playerName) {
     const profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}');
     if (!profiles[playerName]) profiles[playerName] = { xp: 0 };
     return profiles[playerName];
   },
-  saveProfile(playerName, xpAdd) {
-    const profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}');
-    if (!profiles[playerName]) profiles[playerName] = { xp: 0 };
     profiles[playerName].xp += xpAdd;
     localStorage.setItem('erase_profiles', JSON.stringify(profiles));
+    const devId = this.getDeviceId();
+    LeaderboardSync.uploadScore(devId, playerName, profiles[playerName].xp); // Sync with Device ID
     return profiles[playerName];
+  },
+  getDeviceId() {
+    let id = localStorage.getItem('erase_device_id');
+    if (!id) {
+      id = 'dev-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+      localStorage.setItem('erase_device_id', id);
+    }
+    return id;
   },
   getRank(xp) {
     let currentRank = XP_RANKS[0];
@@ -801,7 +880,12 @@ const Dashboard = {
     else if (p >= 50) { lvl = '<span style="color:var(--cyan);font-weight:800;font-size:14px">🌟 SKILLED CREW</span>'; fb = 'Khá tốt! Chú ý thêm dấu khi chuyển vế.'; }
     else { lvl = '<span style="color:var(--red);font-weight:800;font-size:14px">💀 ROOKIE</span>'; fb = 'Cần ôn thêm: +a → −a, −a → +a khi chuyển vế.'; }
     document.getElementById('dp-level').innerHTML = lvl;
-    document.getElementById('dp-feedback').textContent = fb;
+    
+    // Phân tích điểm yếu theo logic mới
+    const allGames = JSON.parse(localStorage.getItem('erase_among') || '[]');
+    const studentHistory = allGames.filter(g => g.name === d.name);
+    const weakness = GameAnalysis.analyze(studentHistory);
+    document.getElementById('dp-feedback').innerHTML = `<span style="color:${weakness.color}; font-weight:700">${weakness.tag}</span>`;
     const an = d.analytics || {}; const times = [...(an.dTimes || []), ...(an.cTimes || [])].filter(Boolean);
     document.getElementById('dp-avg-time').textContent = times.length ? `${Math.round(times.reduce((a, b) => a + b, 0) / times.length)}s/câu` : '—';
   },

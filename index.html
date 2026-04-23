@@ -127,91 +127,61 @@
     showScreen('screen-leaderboard');
     const list = document.getElementById('leaderboard-list');
     // Lấy dữ liệu từ localStorage
-    let profiles = {};
-    try { profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}'); } catch(e) {}
-    let arr = Object.entries(profiles).map(([name, p]) => ({ name, xp: p.xp||0 }));
-    arr.sort((a, b) => b.xp - a.xp);
-
-    // Lấy lịch sử ván chơi
-    let allGames = [];
-    try { allGames = JSON.parse(localStorage.getItem('erase_among') || '[]'); } catch(e) {}
-    // Gom lịch sử theo tên
-    let historyByName = {};
-    allGames.forEach(g => {
-      if (!g.name) return;
-      if (!historyByName[g.name]) historyByName[g.name] = [];
-      historyByName[g.name].push(g);
-    });
-
-    // Hàm phân tích điểm yếu
-    function analyzeWeakness(games) {
-      if (!games || !games.length) return { tag: '✅ Không điểm yếu', color: '#2ed573' };
+    // Bảng xếp hạng
+    async function showLeaderboard() {
+      const list = document.getElementById('leaderboard-list');
       
-      let totalGames = games.length;
-      let totalQ = 0;
-      let dFailBoth = 0; 
-      let cFailBoth = 0; 
-      let totalWrongClicks = 0;
-      let fastAndWrong = 0;
-      
-      let subjectStats = {
-        chuyenVe: { count: 0, fail: 0, label: '🔴 Sai quy tắc chuyển vế', color: '#e74c3c' },
-        tinhToan: { count: 0, fail: 0, label: '🔴 Sai tính toán', color: '#e67e22' },
-        thuTu: { count: 0, fail: 0, label: '🔴 Sai thứ tự phép tính', color: '#9b59b6' }
-      };
+      let arr = [];
+      // Thử lấy dữ liệu từ Supabase
+      const cloudData = await LeaderboardSync.fetchScores();
+      if (cloudData && cloudData.length > 0) {
+        arr = cloudData;
+      } else {
+        // Fallback về localStorage nếu không có dữ liệu cloud
+        let profiles = {};
+        try { profiles = JSON.parse(localStorage.getItem('erase_profiles') || '{}'); } catch(e) {}
+        arr = Object.entries(profiles).map(([name, p]) => ({ name, xp: p.xp||0 }));
+        arr.sort((a, b) => b.xp - a.xp);
+      }
 
-      games.forEach(g => {
-        let qrs = g.qResults || [];
-        let an = g.analytics || {};
-        let dAtt = an.dAttempts || [];
-        let cAtt = an.cAttempts || [];
-        let wClicks = an.wrongClicks || [];
-        let dTimes = an.dTimes || [];
-        let activeQs = g.activeQuestions || [];
+      let html = `
+        <div class="dp-table-card">
+          <div class="dp-table-head">📊 THỨ HẠNG THÁM TỬ</div>
+          <div class="dp-table-wrap" style="max-height: none;">
+            <table style="font-size: 15px;">
+              <thead>
+                <tr>
+                  <th style="font-size: 12px">#</th>
+                  <th style="font-size: 12px">Tên</th>
+                  <th style="text-align:right; font-size: 12px">XP</th>
+                  <th style="font-size: 12px">Hạng (Rank)</th>
+                </tr>
+              </thead>
+              <tbody>`;
+      if (arr.length === 0) {
+        html += `<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--white-ghost)">Chưa có ai tự luyện!</td></tr>`;
+      } else {
+        arr.forEach((p, i) => {
+          let bg = '';
+          if (i === 0) bg = 'rgba(245,197,24,0.1)';
+          else if (i === 1) bg = 'rgba(200,200,200,0.08)';
+          else if (i === 2) bg = 'rgba(176,141,87,0.08)';
 
-        qrs.forEach((qr, i) => {
-          if (!qr) return;
-          totalQ++;
-          if (dAtt[i] === 'X') dFailBoth++;
-          if (cAtt[i] === 'X') cFailBoth++;
-          totalWrongClicks += (wClicks[i] || 0);
-          if ((dTimes[i] || 99) < 8 && (!qr.dOk || !qr.cOk)) fastAndWrong++;
+          let rank = XP.getRank(p.xp);
 
-          let q = activeQs[i] || {};
-          let et = q.errorType;
-          if (et && subjectStats[et]) {
-            subjectStats[et].count++;
-            if (!qr.dOk || !qr.cOk) subjectStats[et].fail++;
-          }
+          html += `<tr style="background:${bg}">
+            <td style="font-weight:800;padding:10px 10px">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td>
+            <td style="font-weight:700;color:var(--yellow);padding:10px 10px">${p.name}</td>
+            <td style="text-align:right;font-family:var(--font-title);padding:10px 10px">${p.xp}</td>
+            <td style="padding:10px 10px;font-weight:700;color:${rank.color}">
+              <span style="font-size:1.2em">${rank.emoji}</span> ${rank.name} 
+              <span style="font-size:10px; opacity:0.7; font-weight:400;">(Lv.${rank.level})</span>
+            </td>
+          </tr>`;
         });
-      });
-
-      let pct = (v, t) => t ? (v / t * 100) : 0;
-      
-      let subjectResults = Object.keys(subjectStats).map(k => {
-        let s = subjectStats[k];
-        let score = s.count >= 2 ? pct(s.fail, s.count) : 0;
-        return { ...s, score };
-      }).filter(s => s.score >= 40);
-
-      let behaviorResults = [
-        { score: pct(dFailBoth, totalQ), label: '🔴 Hay bỏ sót lỗi', color: '#e74c3c', thresholdMet: pct(dFailBoth, totalQ) >= 30 },
-        { score: pct(cFailBoth, totalQ), label: '🟠 Hay sửa sai', color: '#e67e22', thresholdMet: pct(cFailBoth, totalQ) >= 30 },
-        { score: (totalWrongClicks / totalGames), label: '🟣 Click nhầm nhiều', color: '#8e44ad', thresholdMet: (totalWrongClicks / totalGames >= 2.5) },
-        { score: fastAndWrong, label: '🔵 Đoán nhanh, sai nhiều', color: '#2980b9', thresholdMet: (fastAndWrong >= 2) }
-      ];
-      
-      let validBehaviors = behaviorResults.filter(b => b.thresholdMet);
-
-      if (subjectResults.length) {
-        subjectResults.sort((a, b) => b.score - a.score);
-        return { tag: `${subjectResults[0].label} (${Math.round(subjectResults[0].score)}%)`, color: subjectResults[0].color };
       }
-      if (validBehaviors.length) {
-        validBehaviors.sort((a, b) => b.score - a.score);
-        return { tag: `${validBehaviors[0].label}`, color: validBehaviors[0].color };
-      }
-      return { tag: '✅ Không điểm yếu', color: '#2ed573' };
+      html += '</tbody></table></div></div>';
+      list.innerHTML = html;
     }
 
     // Nhận xét theo XP
