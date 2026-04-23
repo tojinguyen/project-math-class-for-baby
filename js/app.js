@@ -1007,24 +1007,32 @@ const BankModal = {
     if (!this._parsed) return;
     const count = parseInt(document.getElementById('bank-q-count').value) || this._parsed.length;
     window._bankQuestions = this._parsed; window._bankQCount = count;
-    document.getElementById('bank-active-info').innerHTML = `<div class="bank-badge">✓ ${this._parsed.length} câu đã nạp · ${count}/lượt</div>`;
+    const info = document.getElementById('bank-count-label') || document.getElementById('wf-bank-status');
+    if (info) info.innerHTML = `✓ ${this._parsed.length} câu đã nạp · ${count}/lượt`;
     this.close(); toast(`✓ Đã nạp ${this._parsed.length} câu!`, 'ok');
   }
 };
-document.getElementById('bank-textarea').addEventListener('input', function () { if (this.value.trim()) BankModal.parseJSON(this.value.trim()); });
-const dz = document.getElementById('bm-drop-zone');
-if (dz) {
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over') });
-  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault(); dz.classList.remove('drag-over');
-    const f = e.dataTransfer.files[0];
-    if (f && f.name.endsWith('.json')) {
-      document.getElementById('bm-drop-sub').textContent = f.name;
-      const r = new FileReader(); r.onload = ev => BankModal.parseJSON(ev.target.result); r.readAsText(f);
-    }
-  });
-}
+// Add listeners safely
+document.addEventListener('DOMContentLoaded', () => {
+  const bta = document.getElementById('bank-textarea');
+  if (bta) {
+    bta.addEventListener('input', function () { if (this.value.trim()) BankModal.parseJSON(this.value.trim()); });
+  }
+  const dz = document.getElementById('bm-drop-zone');
+  if (dz) {
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over') });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f && f.name.endsWith('.json')) {
+        const sub = document.getElementById('bm-drop-sub');
+        if (sub) sub.textContent = f.name;
+        const r = new FileReader(); r.onload = ev => BankModal.parseJSON(ev.target.result); r.readAsText(f);
+      }
+    });
+  }
+});
 
 /* ══════════════════════════════════════════════
    CHALLENGE MODE
@@ -1976,12 +1984,12 @@ const RoomStudent = {
 };
 
 // Initialize App
-setTimeout(() => {
+document.addEventListener('DOMContentLoaded', () => {
   const savedName = localStorage.getItem('erase_player_name');
   if (savedName) {
     const nameInput = document.getElementById('player-name');
     if (nameInput) nameInput.value = savedName;
   }
   XP.renderWelcome();
-}, 100);
+});
 
