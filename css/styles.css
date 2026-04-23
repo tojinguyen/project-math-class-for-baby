@@ -1119,11 +1119,14 @@ body::before {
   font-family: var(--font-mono);
   font-weight: 700;
   background: var(--yellow-bg);
-  border: 1.5px solid rgba(255, 211, 42, .3);
-  border-radius: 6px;
-  padding: 2px 8px;
+  border: 1.5px solid rgba(180, 83, 9, 0.2);
+  border-radius: 8px;
+  padding: 6px 12px;
   color: var(--yellow);
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 4px 0;
 }
 
 .math-frac {
@@ -1132,8 +1135,8 @@ body::before {
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  margin: 0 1px;
-  line-height: 1;
+  margin: 0 4px;
+  line-height: 1.1;
 }
 
 .math-frac-top {
@@ -1219,8 +1222,8 @@ body::before {
   font-family: var(--font-mono);
   font-size: 22px;
   color: var(--white);
-  padding: 5px 9px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
   cursor: pointer;
   position: relative;
   transition: all .12s;
@@ -1229,6 +1232,7 @@ body::before {
   display: inline-flex;
   align-items: center;
   line-height: 1.2;
+  min-height: 48px;
 }
 
 .token.op {
@@ -3935,9 +3939,10 @@ body::before {
 }
 
 .ch-solution .token {
-  font-size: 22px;
-  padding: 7px 12px;
-  border-radius: 10px;
+  font-size: 24px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  min-height: 64px;
 }
 
 .ch-solution .token:hover:not(.plain):not(.found-correct):not(.revealed-error) {
@@ -5557,7 +5562,8 @@ body::before {
 
 .student-solution .token {
   font-size: 16px;
-  padding: 5px 8px
+  padding: 8px 12px;
+  min-height: 40px;
 }
 
 /* Student feedback */
@@ -5785,5 +5791,6 @@ body::before {
  . w x - n e x t   { 
      f o n t - s i z e :   1 2 p x ; 
      c o l o r :   v a r ( - - w h i t e - d i m ) ; 
- }  
+ } 
+ 
  
