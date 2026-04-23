@@ -128,13 +128,14 @@ const LeaderboardSync = {
   async uploadProfile(profile) {
     if (!this.enabled || !window.supabase) return;
     this.init();
-    try {
-      const { error } = await this.client.from('profiles').upsert({ 
-        ...profile, 
-        last_active: new Date().toISOString() 
-      });
-      if (error) console.error('Supabase Profile Sync Error:', error.message);
-    } catch(e) { console.error('Supabase Sync Exception:', e); }
+    const { error } = await this.client.from('profiles').upsert({ 
+      ...profile, 
+      last_active: new Date().toISOString() 
+    });
+    if (error) {
+      console.error('Supabase Profile Sync Error:', error.message);
+      throw error; // Throw so caller can catch it
+    }
   },
 
   async fetchScores() {
@@ -150,11 +151,12 @@ const LeaderboardSync = {
   async getProfile(name) {
     if (!this.enabled || !window.supabase || !name) return null;
     this.init();
-    try {
-      const { data, error } = await this.client.from('profiles').select('*').eq('name', name).maybeSingle();
-      if (error) return null;
-      return data;
-    } catch(e) { return null; }
+    const { data, error } = await this.client.from('profiles').select('*').eq('name', name).maybeSingle();
+    if (error) {
+      console.error('Supabase Get Profile Error:', error.message);
+      throw error;
+    }
+    return data;
   }
 };
 
@@ -259,7 +261,10 @@ const XP = {
       }
     } catch (e) {
       console.error(e);
-      toast('Lỗi hệ thống!', 'error');
+      statusEl.style.display = 'block';
+      statusEl.style.color = 'var(--red)';
+      statusEl.textContent = '❌ Lỗi đăng ký: ' + (e.message || 'Không thể kết nối Database');
+      toast('Đăng ký thất bại!', 'error');
     } finally {
       btn.disabled = false;
       btn.textContent = 'Đăng ký';
