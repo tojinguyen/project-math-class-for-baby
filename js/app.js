@@ -1779,6 +1779,7 @@ const RoomHost = {
   },
 
   revealAnswer() {
+    console.log('RoomHost: revealAnswer clicked. Phase:', this.phase, 'qIdx:', this.qIdx);
     const q = this.activeQuestions[this.qIdx];
     if (this.phase === 'detect') {
       q.errTokens.forEach(t => {
@@ -1803,6 +1804,7 @@ const RoomHost = {
   },
 
   moveToCorrection() {
+    console.log('RoomHost: moveToCorrection clicked. qIdx:', this.qIdx);
     const q = this.activeQuestions[this.qIdx];
     this.phase = 'correct';
     this._setPhaseUI('correct');
@@ -1831,6 +1833,7 @@ const RoomHost = {
   },
 
   nextCase() {
+    console.log('RoomHost: nextCase clicked. Current qIdx:', this.qIdx);
     this._stopTimer();
     if (this.qIdx + 1 >= this.activeQuestions.length) {
       this._showHostResults(); return;
