@@ -143,8 +143,8 @@ body::before {
 
 .toast {
   background: rgba(30, 42, 58, 0.95);
-  border: 1px solid var(--border);
-  color: var(--white)
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 .toast.t-ok {
@@ -157,6 +157,12 @@ body::before {
   background: rgba(255, 71, 87, 0.2);
   border: 1px solid var(--red);
   color: var(--red)
+}
+
+.toast.t-warn {
+  background: rgba(245, 197, 24, 0.2);
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
 }
 
 @keyframes toastIn {

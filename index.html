@@ -23,7 +23,7 @@
     href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap"
     rel="stylesheet">
   <!-- Styles -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=2">
   <!-- Dependencies -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -50,7 +50,7 @@
       <div class="welcome-name-field" id="name-field-wrap" style="flex-direction: column; align-items: stretch; padding: 12px 16px;">
         <div style="display: flex; align-items: center; width: 100%; border-bottom: 1px dashed var(--border); padding-bottom: 8px; margin-bottom: 8px;">
           <span class="welcome-name-label">🕵️ THÁM TỬ:</span>
-          <input id="player-name" value="Thám Tử" class="welcome-name-input" placeholder="Nhập tên bạn…"
+          <input id="player-name" value="" class="welcome-name-input" placeholder="Nhập tên thám tử…"
             style="flex: 1; background: transparent; border: none; outline: none; font-family: var(--font-body); font-weight: 800; font-size: 20px; color: var(--white); padding: 8px 12px; caret-color: var(--cyan);"
             onfocus="document.getElementById('name-field-wrap').style.borderColor='var(--yellow)'"
             onblur="document.getElementById('name-field-wrap').style.borderColor='var(--border)'"
@@ -75,13 +75,13 @@
     </div>
 
     <div class="mode-cards">
-      <div class="mode-card mc-challenge" onclick="showScreen('screen-lobby');Lobby.init()">
+      <div class="mode-card mc-challenge" onclick="XP.checkAndStart('lobby')">
         <div class="mc-icon">🏆</div>
         <div class="mc-title">Thách Đấu</div>
         <div class="mc-desc">Giáo viên chiếu lên bảng. Cả lớp cùng giải và thi đua điểm số theo nhóm.</div>
         <div class="mc-badge">👨‍🏫 CHẾ ĐỘ LỚP HỌC</div>
       </div>
-      <div class="mode-card mc-solo" onclick="Game.startGame()">
+      <div class="mode-card mc-solo" onclick="XP.checkAndStart('solo')">
         <div class="mc-icon">🕵️</div>
         <div class="mc-title">Tự Luyện</div>
         <div class="mc-desc">Tự mình giải vụ án. HP, combo streak, và bảng xếp hạng cá nhân.</div>
@@ -251,15 +251,14 @@
             </button>
           </div>
           <div class="lobby-panel" id="lpanel-join">
+            <div class="join-field" style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.15); border-radius: 8px;">
+              <span class="join-field-label" style="margin-bottom: 0;">THÁM TỬ:</span>
+              <span id="join-name-display" style="font-family: var(--font-body); font-weight: 800; color: var(--yellow); font-size: 16px;">—</span>
+            </div>
             <div class="join-field">
               <span class="join-field-label">MÃ PHÒNG:</span>
               <input id="join-code-input" placeholder="ERAS1234" maxlength="9"
                 oninput="this.value=this.value.toUpperCase()"
-                onkeydown="if(event.key==='Enter')document.getElementById('join-name-input').focus()">
-            </div>
-            <div class="join-field">
-              <span class="join-field-label">TÊN BẠN:</span>
-              <input id="join-name-input" placeholder="Nhập tên của bạn…"
                 onkeydown="if(event.key==='Enter')Lobby.joinRoom()">
             </div>
             <button class="btn-lobby btn-join-room" onclick="Lobby.joinRoom()">
@@ -825,6 +824,6 @@
     </div>
   </div>
 
-  <script src="js/app.js"></script>
+  <script src="js/app.js?v=2"></script>
 </body>
 </html>

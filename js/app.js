@@ -17,7 +17,7 @@ const CREW_EMOJIS = ['🕵️', '🔍', '📁', '🗝️', '💼', '🔦', '📋
 /* ══ QUESTION MANAGER ══ */
 const QuestionManager = {
   bank: [],
-  
+
   async init() {
     // Load 100% from Cloud (Supabase)
     try {
@@ -26,7 +26,7 @@ const QuestionManager = {
         this.bank = CloudBank.mapFromDB(cloudData);
         window._bankQuestions = this.bank;
         console.log(`Loaded ${this.bank.length} questions from Cloud.`);
-        
+
         // Update UI if on Profile screen
         if (typeof Profile !== 'undefined' && Profile.renderBank) {
           Profile.renderBank();
@@ -42,7 +42,7 @@ const QuestionManager = {
   async save(data) {
     this.bank = data;
     window._bankQuestions = data;
-    
+
     // Push to Cloud (Supabase) — nguồn duy nhất
     try {
       await CloudBank.pushAll(data);
@@ -81,7 +81,7 @@ const QuestionManager = {
       // Try to get unique topics if possible
       const selected = [];
       const topics = new Set();
-      
+
       // First pass: unique topics
       for (const q of shuffled) {
         if (selected.length < count && !topics.has(q.topic)) {
@@ -89,7 +89,7 @@ const QuestionManager = {
           topics.add(q.topic);
         }
       }
-      
+
       // Second pass: fill remaining
       for (const q of shuffled) {
         if (selected.length < count && !selected.includes(q)) {
@@ -115,7 +115,6 @@ const QuestionManager = {
     return result.sort(() => Math.random() - 0.5).slice(0, totalCount);
   }
 };
-QuestionManager.init();
 
 /* ══ XP SYSTEM ══ */
 const XP_RANKS = [
@@ -133,7 +132,7 @@ const XP_RANKS = [
 
 /* ══ SHARED LEADERBOARD SYNC (Supabase) ══ */
 const LeaderboardSync = {
-  enabled: true, 
+  enabled: true,
   supabaseUrl: 'https://eehegsaxegizcynygafk.supabase.co',
   supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlaGVnc2F4ZWdpemN5bnlnYWZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MzIyNTcsImV4cCI6MjA5MjUwODI1N30.RsAipm-k-6sGT5fnDJp1wQ8Q8rQrLvabYyfgMscDIc4',
   client: null,
@@ -156,9 +155,9 @@ const LeaderboardSync = {
   async uploadProfile(profile) {
     if (!this.enabled || !window.supabase) return;
     this.init();
-    const { error } = await this.client.from('profiles').upsert({ 
-      ...profile, 
-      last_active: new Date().toISOString() 
+    const { error } = await this.client.from('profiles').upsert({
+      ...profile,
+      last_active: new Date().toISOString()
     });
     if (error) {
       console.error('Supabase Profile Sync Error:', error.message);
@@ -173,7 +172,7 @@ const LeaderboardSync = {
       const { data, error } = await this.client.from('profiles').select('name, xp').order('xp', { ascending: false }).limit(20);
       if (error) return null;
       return data;
-    } catch(e) { return null; }
+    } catch (e) { return null; }
   },
 
   async getProfile(name) {
@@ -210,8 +209,8 @@ const GameAnalysis = {
       thuTu: { count: 0, fail: 0, label: '🔴 Sai thứ tự phép tính', color: '#9b59b6' }
     };
     games.forEach(g => {
-      let qrs = g.qResults || [], an = g.analytics || {}, dAtt = an.dAttempts || [], cAtt = an.cAttempts || [], 
-          wClicks = an.wrongClicks || [], dTimes = an.dTimes || [], activeQs = g.activeQuestions || [];
+      let qrs = g.qResults || [], an = g.analytics || {}, dAtt = an.dAttempts || [], cAtt = an.cAttempts || [],
+        wClicks = an.wrongClicks || [], dTimes = an.dTimes || [], activeQs = g.activeQuestions || [];
       qrs.forEach((qr, i) => {
         if (!qr) return; totalQ++;
         if (dAtt[i] === 'X') dFailBoth++;
@@ -262,14 +261,14 @@ const XP = {
   async handleRegister() {
     const nameInput = document.getElementById('player-name');
     const name = nameInput.value.trim();
-    if (!name || name === 'Thám Tử') {
+    if (!name) {
       toast('Vui lòng nhập tên thật của bạn!', 'warn');
       return;
     }
 
     const btn = document.getElementById('btn-register-name');
     const statusEl = document.getElementById('name-check-status');
-    
+
     btn.disabled = true;
     btn.textContent = 'Đang check...';
 
@@ -291,7 +290,7 @@ const XP = {
         };
         await LeaderboardSync.uploadProfile(newProfile);
         this._cache[name] = newProfile;
-        
+
         statusEl.style.display = 'block';
         statusEl.style.color = 'var(--green)';
         statusEl.textContent = '✅ Đăng ký thành công! Chào mừng thám tử mới!';
@@ -327,7 +326,7 @@ const XP = {
     if (bestStreak > (profile.best_streak || 0)) profile.best_streak = bestStreak;
     profile.total_cases = (profile.total_cases || 0) + 1;
     profile.perfect_cases = (profile.perfect_cases || 0) + perfectCasesAdd;
-    
+
     await LeaderboardSync.uploadProfile(profile);
     this._cache[playerName] = profile;
     return profile;
@@ -345,25 +344,26 @@ const XP = {
   async renderWelcome(forceNameFromInput = false) {
     const nameInput = document.getElementById('player-name');
     if (!nameInput) return;
-    
+
     const statusEl = document.getElementById('name-check-status');
     const regBtn = document.getElementById('btn-register-name');
+    const errorEl = document.getElementById('name-error-msg');
 
     if (this._nameTimeout) clearTimeout(this._nameTimeout);
-    
+
     this._nameTimeout = setTimeout(async () => {
       let profile = null;
       let name = nameInput.value.trim();
       const deviceId = LeaderboardSync.getDeviceId();
 
       // Nếu lần đầu load (không phải do gõ phím), thử tìm theo Device ID
-      if (!forceNameFromInput && name === 'Thám Tử') {
+      if (!forceNameFromInput && !name) {
         profile = await LeaderboardSync.getProfileById(deviceId);
         if (profile) {
           nameInput.value = profile.name;
           name = profile.name;
         }
-      } else {
+      } else if (name) {
         profile = await this.getProfile(name);
       }
 
@@ -401,10 +401,9 @@ const XP = {
         if (regBtn) regBtn.style.display = name ? 'block' : 'none';
       }
 
-      // Vô hiệu hóa nút chơi nếu không phải chủ sở hữu
+      // Vô hiệu hóa nút chơi nếu không phải chủ sở hữu (chỉ làm mờ, vẫn cho click để hiện thông báo)
       startBtns.forEach(btn => {
         btn.style.opacity = isOwner ? '1' : '0.3';
-        btn.style.pointerEvents = isOwner ? 'auto' : 'none';
       });
 
       const xp = profile ? profile.xp : 0;
@@ -416,34 +415,30 @@ const XP = {
         rankEl.innerHTML = `${rank.emoji} ${rank.name}`;
         rankEl.style.color = rank.color;
       }
-      
+
       const fill = document.getElementById('wx-fill');
-      if(fill) fill.style.background = rank.color;
-      
+      if (fill) fill.style.background = rank.color;
+
       // UI Progress
       const elText = document.getElementById('wx-text');
       const elNext = document.getElementById('wx-next');
-      
+
       if (rank.level === 10) {
-        if(elText) elText.textContent = `${xp} XP (MAX)`;
-        if(fill) fill.style.width = '100%';
-        if(elNext) elNext.textContent = 'Đã đạt cấp bậc cao nhất!';
+        if (elText) elText.textContent = `${xp} XP (MAX)`;
+        if (fill) fill.style.width = '100%';
+        if (elNext) elNext.textContent = 'Đã đạt cấp bậc cao nhất!';
       } else {
         const xpInLevel = xp - rank.required;
-        if(elText) elText.textContent = `${xp} / ${rank.required + rank.next} XP`;
+        if (elText) elText.textContent = `${xp} / ${rank.required + rank.next} XP`;
         const pct = Math.min(100, Math.round((xpInLevel / rank.next) * 100));
-        if(fill) fill.style.width = `${pct}%`;
+        if (fill) fill.style.width = `${pct}%`;
         const remain = (rank.required + rank.next) - xp;
-        if(elNext) elNext.textContent = `Cần ${remain} XP nữa để lên cấp ${XP_RANKS[rank.level].name}`;
+        if (elNext) elNext.textContent = `Cần ${remain} XP nữa để lên cấp ${XP_RANKS[rank.level].name}`;
       }
 
       if (errorEl) errorEl.style.display = 'none';
-      startBtns.forEach(btn => {
-        btn.style.opacity = '1';
-        btn.style.pointerEvents = 'auto';
-      });
     }, name === this._currentName ? 0 : 500);
-    
+
     this._currentName = name;
   },
 
@@ -453,6 +448,32 @@ const XP = {
     if (bestStreak >= 5) xp += 15;
     if (perfectCount > 0) xp += perfectCount * 10;
     return xp;
+  },
+
+  async checkAndStart(mode) {
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput ? nameInput.value.trim() : '';
+    if (!name) {
+      toast('Vui lòng nhập và đăng ký tên trước khi chơi!', 'warn');
+      if (nameInput) nameInput.focus();
+      return;
+    }
+    const profile = await this.getProfile(name);
+    if (!profile) {
+      toast('Tên này chưa được đăng ký! Vui lòng bấm Đăng ký.', 'warn');
+      return;
+    }
+    if (profile.id !== LeaderboardSync.getDeviceId()) {
+      toast('Tên này đã được người khác sử dụng trên máy khác!', 'error');
+      return;
+    }
+
+    if (mode === 'lobby') {
+      showScreen('screen-lobby');
+      Lobby.init();
+    } else if (mode === 'solo') {
+      Game.startGame();
+    }
   }
 };
 
@@ -528,7 +549,7 @@ function updateQScore() {
   let maxC = 0;
   if (S.cAttempt === 0) maxC = Math.round(10 * S.comboMult);
   else if (S.cAttempt === 1) maxC = Math.round(5 * S.comboMult);
-  
+
   let bonus = 0;
   if (S.phase === 'detect' && S.dAttempt === 0) bonus = 5;
   else if (S.phase === 'correct' && S.dScore > 0 && S.cAttempt === 0) bonus = 5;
@@ -805,11 +826,11 @@ const Game = {
     S.analytics = { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] };
     S.active = true;
     HP.reset(); Streak.reset();
-    
+
     // Determine question count (default 5-8 range as requested)
     const count = window._bankQCount || (6 + Math.floor(Math.random() * 3)); // Random 6-8 if not set
     S.activeQuestions = QuestionManager.getQuestions(count);
-    
+
     showScreen('screen-game');
     Briefing.show(0, S.activeQuestions[0]).then(() => renderQ(0));
   },
@@ -1050,7 +1071,7 @@ const Game = {
     const perfectCount = S.qResults.filter(r => r && r.perfect).length;
     const earnedXp = XP.calcGameXP(S.score, S.hp, S.bestStreak, perfectCount);
     const perfectCasesAdd = perfectCount === S.activeQuestions.length ? 1 : 0;
-    
+
     await XP.saveProfile(S.name, earnedXp, S.bestStreak, perfectCasesAdd);
     XP.renderWelcome(); // Update UI in welcome screen
   }
@@ -1071,14 +1092,14 @@ const Dashboard = {
     document.getElementById('dp-det-rate').innerHTML = `${profile.total_cases || 0}<span> vụ</span>`;
     document.getElementById('dp-cor-rate').innerHTML = `${profile.perfect_cases || 0}<span> vụ 3⭐</span>`;
     document.getElementById('dp-avg-time').textContent = profile.best_streak || '0';
-    
+
     // UI Feedback based on XP/Rank
     const rank = XP.getRank(profile.xp);
     let fb = '';
     if (rank.level >= 8) fb = 'Xuất sắc! Kỹ năng phá án ở đẳng cấp huyền thoại!';
     else if (rank.level >= 5) fb = 'Khá tốt! Bạn đang dần trở thành thám tử chuyên nghiệp.';
     else fb = 'Hãy tiếp tục rèn luyện để nâng cao kỹ năng phá án nhé!';
-    
+
     document.getElementById('dp-level').innerHTML = `<span style="color:${rank.color};font-weight:800;font-size:14px">${rank.emoji} ${rank.name.toUpperCase()}</span>`;
     document.getElementById('dp-feedback').innerHTML = `<span style="color:var(--white-ghost); font-weight:700">${fb}</span>`;
 
@@ -1239,7 +1260,7 @@ const CloudBank = {
   async pushAll(questions) {
     if (!LeaderboardSync.enabled || !window.supabase) return;
     LeaderboardSync.init();
-    
+
     // Prepare for DB: stringify JSON fields
     const toPush = questions.map(q => ({
       ...q,
@@ -1332,7 +1353,7 @@ const Profile = {
     // Lịch sử chi tiết tạm thời tắt khi chuyển sang Database
     const tbody = document.getElementById('history-tbody');
     const empty = document.getElementById('history-empty');
-    tbody.innerHTML = ''; 
+    tbody.innerHTML = '';
     empty.style.display = 'block';
     empty.textContent = 'Dữ liệu lịch sử đã được chuyển lên đám mây. ☁️';
   },
@@ -1363,7 +1384,7 @@ const Profile = {
       const req = ['id', 'topic', 'problem', 'steps', 'errTokens', 'primaryErr', 'correction'];
       const miss = req.filter(k => !data[0].hasOwnProperty(k));
       if (miss.length) throw new Error('Thiếu trường: ' + miss.join(', '));
-      
+
       await QuestionManager.save(data);
       window._bankQCount = Math.min(parseInt(document.getElementById('profile-q-count').value) || 7, data.length);
       vEl.style.display = 'block';
@@ -1418,7 +1439,7 @@ const Profile = {
     btn.disabled = true;
     const oldText = btn.innerHTML;
     btn.innerHTML = '⌛ Đang tải...';
-    
+
     try {
       const data = await CloudBank.fetchAll();
       if (data && data.length > 0) {
@@ -1452,12 +1473,24 @@ const Lobby = {
     const pool = window._bankQuestions || [];
     document.getElementById('host-q-count').max = pool.length;
     document.getElementById('host-q-note').textContent = `/ ${pool.length} câu có sẵn`;
+    
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput ? nameInput.value.trim() : '';
+    const disp = document.getElementById('join-name-display');
+    if (disp) disp.textContent = name;
   },
   switchTab(tab) {
     document.querySelectorAll('.ltab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.lobby-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('ltab-' + tab).classList.add('active');
     document.getElementById('lpanel-' + tab).classList.add('active');
+
+    if (tab === 'join') {
+      const nameInput = document.getElementById('player-name');
+      const name = nameInput ? nameInput.value.trim() : '';
+      const disp = document.getElementById('join-name-display');
+      if (disp) disp.textContent = name;
+    }
   },
   startHost() {
     const count = parseInt(document.getElementById('host-q-count').value) || 5;
@@ -1465,7 +1498,8 @@ const Lobby = {
   },
   joinRoom() {
     const rawCode = document.getElementById('join-code-input').value.trim().toUpperCase();
-    const name = document.getElementById('join-name-input').value.trim();
+    const nameInput = document.getElementById('player-name');
+    const name = nameInput ? nameInput.value.trim() : '';
 
     // Normalize code: remove hyphens and spaces
     let code = rawCode.replace(/[-\s]/g, '');
@@ -1476,7 +1510,6 @@ const Lobby = {
     }
 
     if (!code || code.length < 4) { toast('Mã phòng không hợp lệ!', 'err'); return; }
-    if (!name) { toast('Nhập tên của bạn!', 'err'); return; }
     RoomStudent.init(code, name);
   }
 };
@@ -1622,7 +1655,16 @@ const RoomHost = {
     if (!p || this.phase !== 'correct' || p.cAttempt >= 2) return;
     const q = this.activeQuestions[this.qIdx];
     p.cAttempt++;
-    const correct = mcSel === q.correction.correct;
+
+    let correct = false;
+    if (q.correction.type === 'mc' || q.correction.type === 'symbol') {
+      correct = mcSel === q.correction.correct;
+    } else {
+      // Text answer
+      const val = (mcSel || '').toString().trim().replace(/\s+/g, '');
+      correct = q.correction.correctAnswers && q.correction.correctAnswers.some(a => a.replace(/\s+/g, '') === val);
+    }
+
     let pts = 0;
     if (correct) {
       pts = p.cAttempt === 1 ? 10 : 5;
@@ -1633,7 +1675,7 @@ const RoomHost = {
       p.conn.send({ type: 'correct_result', correct: false, again: true, cAttempt: p.cAttempt });
     } else {
       p.cAnswered = true;
-      const disp = q.correction.correct;
+      const disp = q.correction.displayCorrect || q.correction.correct || (q.correction.correctAnswers ? q.correction.correctAnswers[0] : '?');
       p.conn.send({ type: 'correct_result', correct: false, again: false, answer: disp, exp: q.correction.exp, cAttempt: p.cAttempt });
     }
     this._renderScoreboard();
@@ -1749,7 +1791,17 @@ const RoomHost = {
     Object.values(this.conns).forEach(p => { p.cAttempt = 0; p.cAnswered = false; });
     this._updateAnsProgress();
     // Broadcast phase change
-    this._broadcast({ type: 'phase', phase: 'correct', correction: { question: q.correction.question, wrongExpr: q.correction.wrongExpr, symbols: q.correction.symbols, type: q.correction.type } });
+    this._broadcast({
+      type: 'phase',
+      phase: 'correct',
+      correction: {
+        question: q.correction.question,
+        wrongExpr: q.correction.wrongExpr,
+        symbols: q.correction.symbols,
+        type: q.correction.type,
+        opts: q.correction.opts
+      }
+    });
   },
 
   nextCase() {
@@ -2110,7 +2162,8 @@ const RoomStudent = {
     document.getElementById('student-btn-correct').disabled = false;
 
     const area = document.getElementById('student-corr-input'); area.innerHTML = '';
-    if (corr.type === 'symbol') {
+    const type = corr.type;
+    if (type === 'symbol') {
       const kb = document.createElement('div'); kb.className = 'symbol-keyboard';
       (corr.symbols || []).forEach(sym => {
         const btn = document.createElement('button');
@@ -2123,6 +2176,34 @@ const RoomStudent = {
         kb.appendChild(btn);
       });
       area.appendChild(kb);
+    } else if (type === 'mc') {
+      const mc = document.createElement('div'); mc.className = 'mc-options';
+      (corr.opts || []).forEach((opt, i) => {
+        const letter = ['A', 'B', 'C', 'D'][i] || '?';
+        const d = document.createElement('div'); d.className = 'mc-opt'; d.id = 'stmco-' + i;
+        d.innerHTML = `<span class="mc-letter">${letter}</span>${opt}`;
+        d.addEventListener('click', () => {
+          for (let j = 0; j < corr.opts.length; j++) {
+            const el = document.getElementById('stmco-' + j); if (el) el.className = 'mc-opt';
+          }
+          d.className = 'mc-opt selected'; this.mcSel = i;
+          document.getElementById('student-btn-correct').disabled = false;
+        });
+        mc.appendChild(d);
+      });
+      area.appendChild(mc);
+    } else {
+      const wrap = document.createElement('div'); wrap.className = 'answer-line';
+      const lbl = document.createElement('span'); lbl.className = 'answer-label'; lbl.textContent = 'ĐÁP ÁN:';
+      const inp = document.createElement('input'); inp.type = 'text'; inp.className = 'answer-input'; inp.id = 'st-ans-input';
+      inp.placeholder = 'Nhập biểu thức đúng…';
+      inp.addEventListener('input', () => {
+        this.mcSel = inp.value.trim();
+        document.getElementById('student-btn-correct').disabled = !this.mcSel;
+      });
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') this.submitCorrect(); });
+      wrap.appendChild(lbl); wrap.appendChild(inp); area.appendChild(wrap);
+      setTimeout(() => inp.focus(), 150);
     }
   },
 
@@ -2223,4 +2304,4 @@ document.addEventListener('DOMContentLoaded', () => {
   XP.renderWelcome();
   QuestionManager.init();
 });
-
+
