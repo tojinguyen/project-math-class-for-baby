@@ -1,0 +1,1925 @@
+[
+  {
+    "id": 1,
+    "difficulty": "easy",
+    "diffLabel": "DỄ",
+    "topic": "Phương trình bậc nhất",
+    "problem": "Giải phương trình: <span class=\"eq-block\">2x + 5 = 13</span> — Impostor đã sai dấu!",
+    "hint": "Khi chuyển <strong>+5</strong> sang vế phải, dấu phải đổi thành <strong>−5</strong>.",
+    "rule": "📌 Quy tắc: <strong>+a → −a</strong>, <strong>−a → +a</strong> khi chuyển vế!",
+    "errExp": "Bước chuyển vế giữ nguyên dấu +5 thay vì đổi thành −5. Đúng: 2x = 13 − 5 = 8 → <strong>x = 4</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "5",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "13",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t23",
+            "tx": "13",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "5",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[TÍNH]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "18",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "9",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t24",
+      "t33"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "errorType": "chuyenVe",
+    "correction": {
+      "type": "symbol",
+      "question": "Dấu <strong>+</strong> ở bước chuyển vế phải thay bằng dấu gì?",
+      "wrongExpr": "2x = 13 <mark>+</mark> 5",
+      "symbols": [
+        "+",
+        "−",
+        "×",
+        "÷"
+      ],
+      "correct": "−",
+      "exp": "<strong>+5</strong> chuyển sang vế phải → <strong>−5</strong>. Vậy: 2x = 13−5=8 → <strong>x=4</strong>."
+    }
+  },
+  {
+    "id": 2,
+    "difficulty": "easy",
+    "diffLabel": "DỄ",
+    "topic": "Phương trình bậc nhất",
+    "problem": "Giải phương trình: <span class=\"eq-block\">3x − 7 = 2</span> — Ai đó đã giả mạo dấu!",
+    "hint": "Khi chuyển <strong>−7</strong> sang vế phải, dấu <strong>−</strong> đổi thành <strong>+</strong>.",
+    "rule": "📌 Dấu <strong>−</strong> khi chuyển vế phải trở thành <strong>+</strong>. Đừng giữ nguyên!",
+    "errExp": "Bước chuyển vế viết 2 − 7 là sai. −7 chuyển sang phải → +7. Đúng: 3x=2+7=9 → <strong>x=3</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "7",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "2",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t23",
+            "tx": "2",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "−",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "7",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[TÍNH]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "−5",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "−5/3",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t24",
+      "t33"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "errorType": "chuyenVe",
+    "correction": {
+      "type": "symbol",
+      "question": "Dấu <strong>−</strong> ở bước chuyển vế phải thay bằng dấu gì?",
+      "wrongExpr": "3x = 2 <mark>−</mark> 7",
+      "symbols": [
+        "+",
+        "−",
+        "×",
+        "÷"
+      ],
+      "correct": "+",
+      "exp": "<strong>−7</strong> chuyển sang phải → <strong>+7</strong>. Vậy: 3x=2+7=9 → <strong>x=3</strong>."
+    }
+  },
+  {
+    "id": 3,
+    "difficulty": "medium",
+    "diffLabel": "TRUNG BÌNH",
+    "topic": "Phương trình hai vế có ẩn",
+    "problem": "Giải phương trình: <span class=\"eq-block\">5x + 3 = 2x − 9</span> — Có kẻ đã sai 1 dấu khi chuyển vế!",
+    "hint": "Khi chuyển <strong>+3</strong> sang vế phải, dấu phải đổi thành <strong>−3</strong>.",
+    "rule": "📌 Mỗi hạng tử khi chuyển vế đều phải <strong>đổi dấu riêng</strong>!",
+    "errExp": "+3 chuyển sang phải → −3. Đúng: 5x−2x=−9−3=−12 → <strong>x=−4</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "5x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "3",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t16",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t17",
+            "tx": "9",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "5x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t23",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t24",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t25",
+            "tx": "−9",
+            "tp": "num"
+          },
+          {
+            "id": "t26",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t27",
+            "tx": "3",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[GỌN]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "−6",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "−2",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t26",
+      "t33"
+    ],
+    "primaryErr": [
+      "t26"
+    ],
+    "errorType": "chuyenVe",
+    "correction": {
+      "type": "symbol",
+      "question": "Dấu <strong>+</strong> trước 3 ở vế phải phải thay bằng dấu gì?",
+      "wrongExpr": "5x − 2x = −9 <mark>+</mark> 3",
+      "symbols": [
+        "+",
+        "−",
+        "×",
+        "÷"
+      ],
+      "correct": "−",
+      "exp": "<strong>+3</strong> chuyển sang phải → <strong>−3</strong>. Vậy: 3x=−9−3=−12 → <strong>x=−4</strong>."
+    }
+  },
+  {
+    "id": 4,
+    "difficulty": "medium",
+    "diffLabel": "TRUNG BÌNH",
+    "topic": "Phương trình có dấu ngoặc",
+    "problem": "Giải phương trình: <span class=\"eq-block\">2(x − 3) = 4</span> — Impostor bỏ ngoặc sai rồi!",
+    "hint": "Bỏ ngoặc: nhân hệ số với <strong>tất cả</strong> hạng tử trong ngoặc!",
+    "rule": "📌 <strong>a(b−c) = a·b − a·c</strong> — nhân với MỌI hạng tử!",
+    "errExp": "2(x−3) phải = 2x−6, không phải 2x−3. Đúng: 2x−6=4 → 2x=10 → <strong>x=5</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "2(x−3)",
+            "tp": "expr"
+          },
+          {
+            "id": "t12",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t13",
+            "tx": "4",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[BỎ()]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t23",
+            "tx": "3",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t24",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t25",
+            "tx": "4",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "4",
+            "tp": "num"
+          },
+          {
+            "id": "t34",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t35",
+            "tx": "3",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "3.5",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t23",
+      "t35"
+    ],
+    "primaryErr": [
+      "t23"
+    ],
+    "errorType": "thuTu",
+    "correction": {
+      "type": "text",
+      "question": "2(x−3) bỏ ngoặc ra bằng gì? (vd: 2x-6)",
+      "wrongExpr": "<mark>2x − 3</mark> = 4",
+      "correctAnswers": [
+        "2x-6",
+        "2x - 6"
+      ],
+      "displayCorrect": "2x − 6 = 4",
+      "exp": "2×(x−3) = <strong>2x−6</strong>. Vậy: 2x−6=4 → 2x=10 → <strong>x=5</strong>."
+    }
+  },
+  {
+    "id": 5,
+    "difficulty": "hard",
+    "diffLabel": "KHÓ",
+    "topic": "Dấu trừ trước ngoặc",
+    "problem": "Giải phương trình: <span class=\"eq-block\">3x+2 = x−(4−x)</span> — Impostor ẩn sâu nhất! 👀",
+    "hint": "Dấu <strong>−</strong> trước ngoặc: <strong>đổi dấu TẤT CẢ</strong> bên trong!",
+    "rule": "📌 <strong>−(a−b) = −a+b</strong> — dấu trừ đảo hết dấu trong ngoặc!",
+    "errExp": "−(4−x) = −4+x (không phải −4−x). Đúng: 3x+2=x−4+x → x=−6.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "2",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t16",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t17",
+            "tx": "(4−x)",
+            "tp": "expr"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[BỎ()]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t23",
+            "tx": "2",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t25",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t26",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t27",
+            "tx": "4",
+            "tp": "num"
+          },
+          {
+            "id": "t28",
+            "tx": "−",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t29",
+            "tx": "x",
+            "tp": "var"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t33",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t34",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t35",
+            "tx": "x",
+            "tp": "var",
+            "err": true
+          },
+          {
+            "id": "t36",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t37",
+            "tx": "−4",
+            "tp": "num"
+          },
+          {
+            "id": "t38",
+            "tx": "−",
+            "tp": "op"
+          },
+          {
+            "id": "t39",
+            "tx": "2",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[GỌN]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "−6",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s5",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t51",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t52",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t53",
+            "tx": "−6",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t28",
+      "t35"
+    ],
+    "primaryErr": [
+      "t28"
+    ],
+    "errorType": "thuTu",
+    "correction": {
+      "type": "symbol",
+      "question": "Dấu <strong>−</strong> trước x sau khi bỏ ngoặc phải là dấu gì?",
+      "wrongExpr": "x − 4 <mark>−</mark> x",
+      "symbols": [
+        "+",
+        "−",
+        "×",
+        "÷"
+      ],
+      "correct": "+",
+      "exp": "−(4−x) = −4<strong>+x</strong>. Vậy: 3x+2=x−4+x → x=−6."
+    }
+  },
+  {
+    "id": 6,
+    "topic": "Phương trình bậc nhất",
+    "difficulty": "easy",
+    "diffLabel": "DỄ",
+    "problem": "Giải phương trình: <span class='eq-block'>2x + 5 = 15</span>",
+    "hint": "Cẩn thận! Hãy kiểm tra xem dấu +5 khi chuyển sang vế kia đã được đổi chưa.",
+    "rule": "📌 Quy tắc: Chuyển vế phải đổi dấu (+ thành −). Muốn tìm x trong phép nhân thì phải dùng phép chia.",
+    "errExp": "Lỗi sai: Impostor không đổi dấu khi chuyển vế (+5 vẫn là +5), và sau đó lại dùng phép cộng thay vì phép chia để tìm x.<br><br>Đúng: 2x = 15 − 5 = 10 → <strong>x = 5</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "5",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "15",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t23",
+            "tx": "15",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "5",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[TÍNH]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "2x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "20",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[TÌM X]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "20",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t44",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t45",
+            "tx": "2",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s5",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t51",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t52",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t53",
+            "tx": "22",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t24",
+      "t33",
+      "t44",
+      "t53"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Sửa lại lỗi sai đầu tiên (bước chuyển vế), biểu thức đúng phải là gì?",
+      "wrongExpr": "2x = <mark>15 + 5</mark>",
+      "opts": [
+        "2x = 15 − 5",
+        "2x = 15 + 5",
+        "2x = 5 − 15",
+        "2x = 15 : 5"
+      ],
+      "correct": 0,
+      "exp": "Chuyển +5 sang vế phải thì phải đổi dấu thành −5.<br><br>Vậy: 2x = 15 − 5 = 10. Sau đó chia 2 ta được <strong>x = 5</strong>."
+    }
+  },
+  {
+    "id": 7,
+    "topic": "Phương trình bậc nhất",
+    "difficulty": "easy",
+    "diffLabel": "DỄ",
+    "problem": "Giải phương trình: <span class='eq-block'>3x + 7 = 25</span>",
+    "hint": "Lưu ý quy tắc đổi dấu. Và 3x = ... thì muốn tìm x phải chia, không phải cộng!",
+    "rule": "📌 Quy tắc: Chuyển vế phải đổi dấu (+ thành −).",
+    "errExp": "Lỗi sai: Không đổi dấu +7 thành −7 khi chuyển vế, và dùng phép cộng để tìm x thay vì phép chia.<br><br>Đúng: 3x = 25 − 7 = 18 → <strong>x = 6</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "7",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "25",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t23",
+            "tx": "25",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "7",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[TÍNH]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "3x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "32",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[TÌM X]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "32",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t44",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t45",
+            "tx": "3",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s5",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t51",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t52",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t53",
+            "tx": "35",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t24",
+      "t33",
+      "t44",
+      "t53"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Sửa lại lỗi sai đầu tiên (bước chuyển vế), biểu thức đúng phải là gì?",
+      "wrongExpr": "3x = <mark>25 + 7</mark>",
+      "opts": [
+        "3x = 25 − 7",
+        "3x = 25 : 7",
+        "3x = 7 − 25",
+        "x = 25 − 7"
+      ],
+      "correct": 0,
+      "exp": "Chuyển +7 sang phải thì phải đổi thành −7.<br><br>Biểu thức đúng: 3x = 25 − 7 = 18. Lấy 18 chia 3 được <strong>x = 6</strong>."
+    }
+  },
+  {
+    "id": 8,
+    "topic": "Phương trình bậc nhất",
+    "difficulty": "easy",
+    "diffLabel": "DỄ",
+    "problem": "Giải phương trình: <span class='eq-block'>4x - 9 = 23</span>",
+    "hint": "Chú ý dấu trừ! Khi mang −9 qua phía bên kia dấu bằng, nó sẽ trở thành gì?",
+    "rule": "📌 Quy tắc: Chuyển vế phải đổi dấu (− thành +).",
+    "errExp": "Lỗi sai: −9 chuyển sang vế phải nhưng lại giữ nguyên dấu trừ. Cuối cùng lại dùng phép trừ thay vì phép chia để tìm x.<br><br>Đúng: 4x = 23 + 9 = 32 → <strong>x = 8</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "4x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "-",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "9",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "23",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "4x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t23",
+            "tx": "23",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "-",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "9",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[TÍNH]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "4x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "14",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[TÌM X]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "14",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t44",
+            "tx": "-",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t45",
+            "tx": "4",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s5",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t51",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t52",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t53",
+            "tx": "10",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t24",
+      "t33",
+      "t44",
+      "t53"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Sửa lại lỗi sai đầu tiên (bước chuyển vế), biểu thức đúng phải là gì?",
+      "wrongExpr": "4x = <mark>23 - 9</mark>",
+      "opts": [
+        "4x = 23 + 9",
+        "4x = 23 × 9",
+        "4x = 9 − 23",
+        "x = 23 + 9"
+      ],
+      "correct": 0,
+      "exp": "Chuyển −9 sang phải thì phải đổi dấu thành +9.<br><br>Biểu thức đúng: 4x = 23 + 9 = 32. Sau đó lấy 32 chia 4 được <strong>x = 8</strong>."
+    }
+  },
+  {
+    "id": 9,
+    "topic": "Phương trình bậc nhất",
+    "difficulty": "easy",
+    "diffLabel": "DỄ",
+    "problem": "Giải phương trình: <span class='eq-block'>5x + 3 = 18</span>",
+    "hint": "Có 2 lỗi lận! Vừa không đổi dấu khi chuyển vế, vừa làm sai phép tính tìm x ở cuối.",
+    "rule": "📌 Quy tắc: Chuyển vế phải đổi dấu (+ thành −).",
+    "errExp": "Lỗi sai: Chuyển vế không đổi dấu (+3 vẫn là +3), và lại nhầm phép chia thành phép nhân ở bước cuối.<br><br>Đúng: 5x = 18 − 3 = 15 → <strong>x = 3</strong>.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "5x",
+            "tp": "var"
+          },
+          {
+            "id": "t12",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "3",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t15",
+            "tx": "18",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CV]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "5x",
+            "tp": "var"
+          },
+          {
+            "id": "t22",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t23",
+            "tx": "18",
+            "tp": "num"
+          },
+          {
+            "id": "t24",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "3",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s3",
+        "label": "[TÍNH]",
+        "tokens": [
+          {
+            "id": "t31",
+            "tx": "5x",
+            "tp": "var"
+          },
+          {
+            "id": "t32",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t33",
+            "tx": "21",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      },
+      {
+        "id": "s4",
+        "label": "[TÌM X]",
+        "tokens": [
+          {
+            "id": "t41",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t42",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t43",
+            "tx": "21",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t44",
+            "tx": "×",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t45",
+            "tx": "5",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s5",
+        "label": "[KQ]",
+        "tokens": [
+          {
+            "id": "t51",
+            "tx": "x",
+            "tp": "var"
+          },
+          {
+            "id": "t52",
+            "tx": "=",
+            "tp": "eq"
+          },
+          {
+            "id": "t53",
+            "tx": "105",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t24",
+      "t33",
+      "t44",
+      "t53"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Sửa lại lỗi sai đầu tiên (bước chuyển vế), biểu thức đúng phải là gì?",
+      "wrongExpr": "5x = <mark>18 + 3</mark>",
+      "opts": [
+        "5x = 18 − 3",
+        "5x = 3 − 18",
+        "5x = 18 : 3",
+        "x = 18 − 3"
+      ],
+      "correct": 0,
+      "exp": "Chuyển +3 sang phải thì phải đổi thành −3.<br><br>Biểu thức đúng: 5x = 18 − 3 = 15. Sau đó lấy 15 chia 5 được <strong>x = 3</strong>."
+    }
+  },
+  {
+    "id": 20,
+    "topic": "Thứ tự thực hiện phép tính",
+    "difficulty": "medium",
+    "diffLabel": "TRUNG BÌNH",
+    "problem": "Thực hiện phép tính: <span class='eq-block'>4^2 : 2 + 6</span>",
+    "hint": "Theo thứ tự thực hiện phép tính, lũy thừa phải được ưu tiên giải quyết trước phép nhân/chia.",
+    "rule": "📌 Thứ tự: Lũy thừa → Nhân/Chia → Cộng/Trừ.",
+    "errExp": "Impostor đã lấy 4 chia 2 trước rồi mới tính lũy thừa.<br><br>Phép tính đúng phải ưu tiên tính 4^2 = 16 trước.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "4^2",
+            "tp": "expr"
+          },
+          {
+            "id": "t12",
+            "tx": ":",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "2",
+            "tp": "num"
+          },
+          {
+            "id": "t14",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t15",
+            "tx": "6",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[CHIA]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "2^2",
+            "tp": "expr",
+            "err": true
+          },
+          {
+            "id": "t22",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t23",
+            "tx": "6",
+            "tp": "num"
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t21"
+    ],
+    "primaryErr": [
+      "t21"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Phải tính lũy thừa trước! Toàn bộ bước tiếp theo phải viết lại thế nào?",
+      "wrongExpr": "<mark>(4:2)^2</mark> + 6",
+      "opts": [
+        "16 : 2 + 6",
+        "8 + 6",
+        "4^2 : 8",
+        "16 : 8"
+      ],
+      "correct": 0,
+      "exp": "Phải tính lũy thừa trước: 4^2 = 16.<br><br>Viết lại bước tiếp theo phải là: 16 : 2 + 6."
+    }
+  },
+  {
+    "id": 21,
+    "topic": "Biểu thức có dấu ngoặc",
+    "difficulty": "medium",
+    "diffLabel": "TRUNG BÌNH",
+    "problem": "Thực hiện phép tính: <span class='eq-block'>(6,8 - 2) : 3</span>",
+    "hint": "Các phép toán trong dấu ngoặc đơn luôn có 'đặc quyền' phải được thực hiện đầu tiên.",
+    "rule": "📌 Phép tính trong ngoặc ( ) luôn được ưu tiên thực hiện trước.",
+    "errExp": "Lỗi sai: Bỏ qua dấu ngoặc và lấy 2 chia cho 3 trước.<br><br>Cần ưu tiên giải quyết 6,8 - 2 trong ngoặc.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "(",
+            "tp": "plain"
+          },
+          {
+            "id": "t12",
+            "tx": "6,8",
+            "tp": "num"
+          },
+          {
+            "id": "t13",
+            "tx": "-",
+            "tp": "op"
+          },
+          {
+            "id": "t14",
+            "tx": "2",
+            "tp": "num"
+          },
+          {
+            "id": "t15",
+            "tx": ")",
+            "tp": "plain"
+          },
+          {
+            "id": "t16",
+            "tx": ":",
+            "tp": "op"
+          },
+          {
+            "id": "t17",
+            "tx": "3",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[PHÁ]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "6,8",
+            "tp": "num"
+          },
+          {
+            "id": "t22",
+            "tx": "-",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t23",
+            "tx": "2/3",
+            "tp": "num",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t22",
+      "t23"
+    ],
+    "primaryErr": [
+      "t22"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Làm toán trong ngoặc trước! Bước tiếp theo biểu thức sẽ trở thành gì?",
+      "wrongExpr": "6,8 - <mark>2/3</mark>",
+      "opts": [
+        "4,8 : 3",
+        "6,8 - 0,66",
+        "4,8 - 3",
+        "8,8 : 3"
+      ],
+      "correct": 0,
+      "exp": "Ưu tiên phép tính trong ngoặc: 6,8 - 2 = 4,8.<br><br>Viết lại bước tiếp theo phải là: 4,8 : 3."
+    }
+  },
+  {
+    "id": 22,
+    "topic": "Biểu thức phân số",
+    "difficulty": "hard",
+    "diffLabel": "KHÓ",
+    "problem": "Thực hiện phép tính: <span class='eq-block'>(2/3 + 1/6) : 5/4</span>",
+    "hint": "Không được thực hiện phép chia trước khi hoàn thành tính tổng bên trong ngoặc.",
+    "rule": "📌 Trong biểu thức, ngoặc ( ) là vua! Luôn tính trong ngoặc trước.",
+    "errExp": "Lỗi sai: Phá vỡ cấu trúc ngoặc để lấy 1/6 chia cho 5/4 trước.<br><br>Phải quy đồng và cộng trong ngoặc trước.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "(",
+            "tp": "plain"
+          },
+          {
+            "id": "t12",
+            "tx": "2/3",
+            "tp": "num"
+          },
+          {
+            "id": "t13",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t14",
+            "tx": "1/6",
+            "tp": "num"
+          },
+          {
+            "id": "t15",
+            "tx": ")",
+            "tp": "plain"
+          },
+          {
+            "id": "t16",
+            "tx": ":",
+            "tp": "op"
+          },
+          {
+            "id": "t17",
+            "tx": "5/4",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[PHÁ]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "2/3",
+            "tp": "num"
+          },
+          {
+            "id": "t22",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t23",
+            "tx": "(",
+            "tp": "plain",
+            "err": true
+          },
+          {
+            "id": "t24",
+            "tx": "1/6",
+            "tp": "num"
+          },
+          {
+            "id": "t25",
+            "tx": ":",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t26",
+            "tx": "5/4",
+            "tp": "num"
+          },
+          {
+            "id": "t27",
+            "tx": ")",
+            "tp": "plain",
+            "err": true
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t22",
+      "t23",
+      "t25",
+      "t27"
+    ],
+    "primaryErr": [
+      "t22"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Ưu tiên tính trong ngoặc trước, toàn bộ bước tiếp theo phải được viết lại thế nào mới chuẩn?",
+      "wrongExpr": "<mark>2/3 + (1/6 : 5/4)</mark>",
+      "opts": [
+        "5/6 : 5/4",
+        "2/3 + 2/15",
+        "3/9 : 5/4",
+        "5/6 × 5/4"
+      ],
+      "correct": 0,
+      "exp": "Phải tính trong ngoặc trước: 2/3 + 1/6 = 4/6 + 1/6 = 5/6.<br><br>Viết lại bước tiếp theo phải là: 5/6 : 5/4."
+    }
+  },
+  {
+    "id": 23,
+    "topic": "Dấu ngoặc",
+    "difficulty": "medium",
+    "diffLabel": "TRUNG BÌNH",
+    "problem": "Thực hiện phép tính: <span class='eq-block'>3 × (5 + 2) - 4</span>",
+    "hint": "Hãy giải quyết cho xong trong ngoặc trước khi thực hiện phép nhân.",
+    "rule": "📌 Tính giá trị biểu thức trong ngoặc trước rồi mới nhân chia.",
+    "errExp": "Impostor đã bỏ ngoặc bừa bãi! Lấy 3 nhân với 5 mà bỏ quên số 2.<br><br>Phải tính 5 + 2 trước.",
+    "steps": [
+      {
+        "id": "s1",
+        "label": "[GỐC]",
+        "tokens": [
+          {
+            "id": "t11",
+            "tx": "3",
+            "tp": "num"
+          },
+          {
+            "id": "t12",
+            "tx": "×",
+            "tp": "op"
+          },
+          {
+            "id": "t13",
+            "tx": "(",
+            "tp": "plain"
+          },
+          {
+            "id": "t14",
+            "tx": "5",
+            "tp": "num"
+          },
+          {
+            "id": "t15",
+            "tx": "+",
+            "tp": "op"
+          },
+          {
+            "id": "t16",
+            "tx": "2",
+            "tp": "num"
+          },
+          {
+            "id": "t17",
+            "tx": ")",
+            "tp": "plain"
+          },
+          {
+            "id": "t18",
+            "tx": "-",
+            "tp": "op"
+          },
+          {
+            "id": "t19",
+            "tx": "4",
+            "tp": "num"
+          }
+        ]
+      },
+      {
+        "id": "s2",
+        "label": "[PHÁ]",
+        "tokens": [
+          {
+            "id": "t21",
+            "tx": "3",
+            "tp": "num"
+          },
+          {
+            "id": "t22",
+            "tx": "×",
+            "tp": "op"
+          },
+          {
+            "id": "t23",
+            "tx": "5",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t24",
+            "tx": "+",
+            "tp": "op",
+            "err": true
+          },
+          {
+            "id": "t25",
+            "tx": "2",
+            "tp": "num",
+            "err": true
+          },
+          {
+            "id": "t26",
+            "tx": "-",
+            "tp": "op"
+          },
+          {
+            "id": "t27",
+            "tx": "4",
+            "tp": "num"
+          }
+        ]
+      }
+    ],
+    "errTokens": [
+      "t23",
+      "t24"
+    ],
+    "primaryErr": [
+      "t24"
+    ],
+    "correction": {
+      "type": "mc",
+      "question": "Tính gọn trong ngoặc trước, bước tiếp theo phải là biểu thức nào?",
+      "wrongExpr": "<mark>3 × 5 + 2</mark> - 4",
+      "opts": [
+        "3 × 7 - 4",
+        "15 + 2 - 4",
+        "3 × 3 - 4",
+        "21 - 4"
+      ],
+      "correct": 0,
+      "exp": "Tính gọn trong ngoặc: 5 + 2 = 7.<br><br>Bước tiếp theo viết lại phải là: 3 × 7 - 4."
+    }
+  }
+]
