@@ -918,7 +918,6 @@ const Game = {
   },
   exitToMenu() { SessionManager.clearGame(); stopTimer(); S.active = false; showScreen('screen-welcome'); },
   restartGame() { this.startGame(); },
-  showDashboard() { showScreen('screen-dashboard'); Dashboard.init(); },
   gameOver() {
     SessionManager.clearGame();
     stopTimer(); showScreen('screen-gameover');
@@ -1190,74 +1189,6 @@ const Game = {
 
     await XP.saveProfile(S.name, earnedXp, S.bestStreak, perfectCasesAdd);
     XP.renderWelcome(); // Update UI in welcome screen
-  }
-};
-
-/* ══ DASHBOARD ══ */
-const Dashboard = {
-  async init() {
-    const profile = await XP.getProfile(S.name || 'Thám Tử');
-    if (!profile || (profile.total_cases || 0) === 0) {
-      document.getElementById('dp-student-name').textContent = `Thám Tử: ${S.name || 'Mới'}`;
-      this.showEmptyState();
-      return;
-    }
-
-    document.getElementById('dp-student-name').textContent = `Thám Tử: ${profile.name}`;
-    document.getElementById('dp-total').innerHTML = `${profile.xp || 0}<span> XP</span>`;
-    document.getElementById('dp-det-rate').innerHTML = `${profile.total_cases || 0}<span> vụ</span>`;
-    document.getElementById('dp-cor-rate').innerHTML = `${profile.perfect_cases || 0}<span> vụ 3⭐</span>`;
-    document.getElementById('dp-avg-time').textContent = profile.best_streak || '0';
-
-    // UI Feedback based on XP/Rank
-    const rank = XP.getRank(profile.xp);
-    let fb = '';
-    if (rank.level >= 8) fb = 'Xuất sắc! Kỹ năng phá án ở đẳng cấp huyền thoại!';
-    else if (rank.level >= 5) fb = 'Khá tốt! Bạn đang dần trở thành thám tử chuyên nghiệp.';
-    else fb = 'Hãy tiếp tục rèn luyện để nâng cao kỹ năng phá án nhé!';
-
-    document.getElementById('dp-level').innerHTML = `<span style="color:${rank.color};font-weight:800;font-size:14px">${rank.emoji} ${rank.name.toUpperCase()}</span>`;
-    document.getElementById('dp-feedback').innerHTML = `<span style="color:var(--white-ghost); font-weight:700">${fb}</span>`;
-
-    // Clear history tables
-    document.getElementById('dp-q-tbody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--white-ghost)">Lịch sử chi tiết đã được đồng bộ lên Database.</td></tr>';
-    document.getElementById('an-table-body').innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px 20px;"><div style="font-size: 40px; margin-bottom: 10px;">☁️</div><div style="color:var(--yellow); font-weight:700; font-size:16px;">DỮ LIỆU ĐÁM MÂY</div><div style="color:var(--white-ghost); font-size:13px; margin-top:5px; opacity:0.7;">Toàn bộ chỉ số thám tử hiện đang được lưu trữ bảo mật.</div></td></tr>`;
-  },
-  analytics(d) {
-    const an = d.analytics || {}; const da = an.dAttempts || []; const ca = an.cAttempts || [];
-    const N = S.activeQuestions.length || 5;
-    const d1 = da.filter(x => x === 1).length, d2 = da.filter(x => x === 2).length, dx = da.filter(x => x === 'X').length;
-    const c1 = ca.filter(x => x === 1).length, c2 = ca.filter(x => x === 2).length, cx = ca.filter(x => x === 'X').length;
-    const pp = v => pct(v, N);
-    [{ k: 'd1', v: d1 }, { k: 'd2', v: d2 }, { k: 'dx', v: dx }, { k: 'c1', v: c1 }, { k: 'c2', v: c2 }, { k: 'cx', v: cx }].forEach(({ k, v }) => {
-      document.getElementById(`an-${k}`).textContent = `${v}/${N}`;
-      document.getElementById(`an-${k}b`).style.width = `${pp(v)}%`;
-    });
-    const tb = document.getElementById('an-table-body'); tb.innerHTML = '';
-    S.activeQuestions.forEach((_, i) => {
-      const det = da[i] || '—'; const cor = ca[i] || '—'; const wc = (an.wrongClicks || [])[i] || 0;
-      const dt = (an.dTimes || [])[i] || '—'; const ct = (an.cTimes || [])[i] || '—';
-      const sc = (d.qResults || [])[i]?.total || 0;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${i + 1}</td><td class="${det === 1 ? 'td-ok' : det === 'X' ? 'td-bad' : 'td-warn'}">${det}</td><td class="${cor === 1 ? 'td-ok' : cor === 'X' ? 'td-bad' : 'td-warn'}">${cor}</td><td class="${wc > 1 ? 'td-bad' : wc ? 'td-warn' : 'td-ok'}">${wc}</td><td>${dt !== '—' ? dt + 's' : dt}</td><td>${ct !== '—' ? ct + 's' : ct}</td><td>${sc}</td>`;
-      tb.appendChild(tr);
-    });
-  },
-  alerts(d) {
-    const alerts = []; const an = d.analytics || {};
-    const da = an.dAttempts || []; const ca = an.cAttempts || []; const wc = an.wrongClicks || [];
-    if (da.filter(x => x === 'X').length >= 2) alerts.push(`⚠️ Liên tiếp miss ở ${da.filter(x => x === 'X').length} vụ. Ôn lại quy tắc chuyển vế!`);
-    if (wc.reduce((a, b) => a + (b || 0), 0) >= 3) alerts.push('⚠️ Chọn nhầm nhiều — chưa nhận ra vị trí lỗi rõ ràng.');
-    if (ca.filter(x => x === 'X').length >= 2) alerts.push(`⚠️ Fix sai ở ${ca.filter(x => x === 'X').length} vụ. Luyện thêm bước sửa lỗi nhé!`);
-    const list = document.getElementById('dp-alert-list');
-    if (!alerts.length) { list.innerHTML = '<div class="alert-card alert-ok">✓ No alerts! GGWP Thám Tử! 🎉</div>'; return; }
-    list.innerHTML = alerts.map(a => `<div class="alert-card">${a}</div>`).join('');
-  },
-  show(section) {
-    document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.dash-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById(`dp-${section}`).classList.add('active');
-    document.getElementById(`dt-${section}`).classList.add('active');
   }
 };
 

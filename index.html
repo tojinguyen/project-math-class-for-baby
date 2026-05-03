@@ -91,8 +91,6 @@
     </div>
 
     <div class="welcome-footer">
-      <span class="wf-link" onclick="Game.showDashboard()">📊 Dashboard</span>
-      <span class="wf-sep">·</span>
       <span class="wf-link" onclick="showLeaderboard()">🏅 Leader Board</span>
     </div>
 
@@ -850,59 +848,7 @@
         <div class="res-note" id="teacher-note"></div>
         <div class="res-actions">
           <button class="btn-confirm" onclick="Game.restartGame()" style="padding:13px 30px;font-size:17px">🔄 VỤ ÁN MỚI</button>
-          <button class="btn-ghost" onclick="Game.showDashboard()">📊 Stats</button>
           <button class="btn-ghost" onclick="Game.exitToMenu()">🏠 Menu</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ DASHBOARD ══ -->
-  <div id="screen-dashboard" class="screen">
-    <div class="dash-header">
-      <div>
-        <div class="dh-title">E·RASE — STATS</div>
-        <div class="dh-sub">CREW PERFORMANCE LOG</div>
-      </div>
-      <button class="btn-ghost" onclick="Game.exitToMenu()">← Main Menu</button>
-    </div>
-    <div class="dash-body">
-      <nav class="dash-tabs">
-        <div class="dash-tab active" id="dt-student" onclick="Dashboard.show('student')">👤 Thám Tử</div>
-        <div class="dash-tab" id="dt-teacher" onclick="Dashboard.show('teacher')">📋 Chỉ Huy</div>
-        <div class="dash-tab" id="dt-analytics" onclick="Dashboard.show('analytics')">📈 Analysis</div>
-        <div class="dash-tab" id="dt-alerts" onclick="Dashboard.show('alerts')">⚠️ Alerts</div>
-      </nav>
-      <div class="dash-panels">
-        <div class="dash-panel active" id="dp-student">
-          <div class="dp-title">HỒ SƠ THÁM TỬ</div>
-          <div class="dp-sub" id="dp-student-name">—</div>
-          <div class="dp-grid dp-grid-3" style="margin-bottom:14px">
-            <div class="dp-card"><div class="dp-card-label">TỔNG ĐIỂM</div><div class="dp-card-val" id="dp-total">0<span> đ</span></div></div>
-            <div class="dp-card"><div class="dp-card-label">TÌM ĐÚNG</div><div class="dp-card-val" id="dp-det-rate">0<span>%</span></div></div>
-            <div class="dp-card"><div class="dp-card-label">SỬA ĐÚNG</div><div class="dp-card-val" id="dp-cor-rate">0<span>%</span></div></div>
-          </div>
-          <div class="dp-grid dp-grid-2">
-            <div class="dp-table-card">
-              <div class="dp-table-head">Chi tiết từng vụ</div>
-              <div class="dp-table-wrap"><table><thead><tr><th>#</th><th>Chủ đề</th><th>Tìm</th><th>Sửa</th><th>Điểm</th></tr></thead><tbody id="dp-q-tbody"></tbody></table></div>
-            </div>
-            <div class="dp-card">
-              <div class="dp-card-label">HẠNG</div>
-              <div id="dp-level" style="margin-bottom:12px"></div>
-              <div class="dp-card-label">NHẬN XÉT</div>
-              <div id="dp-feedback" style="font-size:16px;font-weight:700;color:var(--white-dim);line-height:1.7"></div>
-              <div class="dp-card-label" style="margin-top:12px">THỜI GIAN TB</div>
-              <div id="dp-avg-time" style="font-family:var(--font-title);font-size:24px;color:var(--cyan)">—</div>
-            </div>
-          </div>
-        </div>
-        <!-- (Other panels remain simplified for brevity in this fix) -->
-        <div class="dash-panel" id="dp-teacher"><div class="dp-title">BẢNG CHỈ HUY</div></div>
-        <div class="dash-panel" id="dp-analytics"><div class="dp-title">ANALYTICS</div></div>
-        <div class="dash-panel" id="dp-alerts">
-          <div class="dp-title">ALERTS</div>
-          <div id="dp-alert-list"></div>
         </div>
       </div>
     </div>
