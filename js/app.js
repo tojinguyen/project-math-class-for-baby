@@ -1959,7 +1959,7 @@ const RoomHost = {
     const btnNext = document.getElementById('host-btn-next');
     btnNext.textContent = 'Vụ tiếp ▶';
     btnNext.onclick = () => this.nextCase();
-    btnNext.disabled = true;
+    btnNext.disabled = false;
     document.getElementById('host-btn-skip').style.display = 'none';
     document.getElementById('hcb-instruction').textContent = 'HS đang tìm nghi phạm...';
 
