@@ -2067,12 +2067,18 @@ const RoomHost = {
     const list = document.getElementById('room-results-list');
     list.innerHTML = players.map((p, i) => {
       let crown = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-      let bg = i === 0 ? 'linear-gradient(90deg, rgba(255,215,0,0.2), transparent)' : 'var(--space2)';
-      let border = i === 0 ? '1px solid var(--yellow)' : '1px solid transparent';
-      return `<div style="display:flex;align-items:center;background:${bg};border:${border};padding:12px 16px;border-radius:12px;">
-                <div style="font-size:24px;width:40px;text-align:center;">${crown}</div>
-                <div style="flex:1;font-weight:800;font-size:18px;margin-left:10px;">${p.name}</div>
-                <div style="font-family:var(--font-title);font-size:24px;color:var(--yellow);">${p.score}</div>
+      let bg = i === 0 ? 'rgba(245,197,24,0.15)' :
+               i === 1 ? 'rgba(200,200,200,0.1)' :
+               i === 2 ? 'rgba(176,141,87,0.1)' : 'var(--space2)';
+      let border = i === 0 ? '2px solid rgba(245,197,24,0.5)' : 
+                   i === 1 ? '2px solid rgba(200,200,200,0.5)' : 
+                   i === 2 ? '2px solid rgba(176,141,87,0.5)' : '2px solid var(--border)';
+      let textColor = i === 0 ? 'var(--yellow)' : 'var(--white)';
+      
+      return `<div style="display:flex;align-items:center;background:${bg};border:${border};padding:15px 20px;border-radius:12px;margin-bottom:8px; transform: scale(${i===0?1.03:1}); transition: transform 0.2s;">
+                <div style="font-size:32px;width:50px;text-align:center;">${crown}</div>
+                <div style="flex:1;font-weight:900;font-size:20px;margin-left:15px;color:${textColor};">${p.name}</div>
+                <div style="font-family:var(--font-title);font-size:28px;color:${textColor};">${p.score} <span style="font-size:14px;opacity:0.7;">PT</span></div>
               </div>`;
     }).join('');
     
@@ -2538,17 +2544,25 @@ const RoomStudent = {
       const list = document.getElementById('room-results-list');
       list.innerHTML = leaderboard.map((p, i) => {
         let crown = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-        let bg = i === 0 ? 'linear-gradient(90deg, rgba(255,215,0,0.2), transparent)' : 'var(--space2)';
-        let border = i === 0 ? '1px solid var(--yellow)' : '1px solid transparent';
+        let bg = i === 0 ? 'rgba(245,197,24,0.15)' :
+                 i === 1 ? 'rgba(200,200,200,0.1)' :
+                 i === 2 ? 'rgba(176,141,87,0.1)' : 'var(--space2)';
+        let border = i === 0 ? '2px solid rgba(245,197,24,0.5)' : 
+                     i === 1 ? '2px solid rgba(200,200,200,0.5)' : 
+                     i === 2 ? '2px solid rgba(176,141,87,0.5)' : '2px solid var(--border)';
+        let textColor = i === 0 ? 'var(--yellow)' : 'var(--white)';
+        
         let isMe = p.name === S.name;
         if (isMe) {
-            bg = 'linear-gradient(90deg, rgba(46,213,115,0.2), transparent)';
-            border = '1px solid var(--green)';
+            bg = 'rgba(46,213,115,0.15)';
+            border = '2px solid var(--green)';
+            textColor = 'var(--white)';
         }
-        return `<div style="display:flex;align-items:center;background:${bg};border:${border};padding:12px 16px;border-radius:12px;">
-                  <div style="font-size:24px;width:40px;text-align:center;">${crown}</div>
-                  <div style="flex:1;font-weight:800;font-size:18px;margin-left:10px;">${p.name} ${isMe ? ' (Bạn)' : ''}</div>
-                  <div style="font-family:var(--font-title);font-size:24px;color:var(--yellow);">${p.score}</div>
+        
+        return `<div style="display:flex;align-items:center;background:${bg};border:${border};padding:15px 20px;border-radius:12px;margin-bottom:8px; transform: scale(${isMe||i===0?1.03:1}); transition: transform 0.2s;">
+                  <div style="font-size:32px;width:50px;text-align:center;">${crown}</div>
+                  <div style="flex:1;font-weight:900;font-size:20px;margin-left:15px;color:${textColor};">${p.name} ${isMe ? ' <span style="font-size:14px;color:var(--green);">(BẠN)</span>' : ''}</div>
+                  <div style="font-family:var(--font-title);font-size:28px;color:${isMe?'var(--green)':textColor};">${p.score} <span style="font-size:14px;opacity:0.7;">PT</span></div>
                 </div>`;
       }).join('');
       document.getElementById('btn-room-results-close').onclick = () => this.exitToMenu();
