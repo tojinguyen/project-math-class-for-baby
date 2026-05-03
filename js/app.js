@@ -2062,14 +2062,22 @@ const RoomHost = {
   _showHostResults() {
     this._stopTimer();
     const players = Object.values(this.conns).sort((a, b) => b.score - a.score);
-    const fb = document.getElementById('host-feedback');
-    fb.className = 'ch-feedback-big show fc-correct';
-    let rows = players.map((p, i) => `<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--space2);border-radius:8px;margin-bottom:4px"><span style="font-family:var(--font-title);font-size:16px;color:var(--yellow);width:24px">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</span><span style="flex:1;font-weight:800">${p.name}</span><span style="font-family:var(--font-title);font-size:20px;color:var(--yellow)">${p.score}</span></div>`).join('');
-    fb.innerHTML = `<div style="width:100%"><div class="cfb-text"><strong>🏆 KẾT THÚC! Bảng xếp hạng:</strong></div><div style="margin-top:10px">${rows}</div></div>`;
-    this._broadcast({ type: 'game_end' });
-    document.getElementById('host-btn-next').textContent = '🏠 Kết thúc';
-    document.getElementById('host-btn-next').onclick = () => this.exitToMenu();
-    document.getElementById('host-btn-next').disabled = false;
+    this._broadcast({ type: 'game_end', leaderboard: players.map(p => ({name: p.name, score: p.score})) });
+    
+    const list = document.getElementById('room-results-list');
+    list.innerHTML = players.map((p, i) => {
+      let crown = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+      let bg = i === 0 ? 'linear-gradient(90deg, rgba(255,215,0,0.2), transparent)' : 'var(--space2)';
+      let border = i === 0 ? '1px solid var(--yellow)' : '1px solid transparent';
+      return `<div style="display:flex;align-items:center;background:${bg};border:${border};padding:12px 16px;border-radius:12px;">
+                <div style="font-size:24px;width:40px;text-align:center;">${crown}</div>
+                <div style="flex:1;font-weight:800;font-size:18px;margin-left:10px;">${p.name}</div>
+                <div style="font-family:var(--font-title);font-size:24px;color:var(--yellow);">${p.score}</div>
+              </div>`;
+    }).join('');
+    
+    document.getElementById('btn-room-results-close').onclick = () => this.exitToMenu();
+    showScreen('screen-room-results');
     spawnConfetti();
   },
 
@@ -2284,7 +2292,7 @@ const RoomStudent = {
         this._revealCorrect(data.answer, data.exp);
         break;
       case 'game_end':
-        this._showGameEnd();
+        this._showGameEnd(data.leaderboard);
         break;
     }
   },
@@ -2521,20 +2529,43 @@ const RoomStudent = {
     document.getElementById('student-btn-correct').disabled = true;
   },
 
-  _showGameEnd() {
+  _showGameEnd(leaderboard) {
     document.getElementById('waiting-overlay').classList.remove('show');
     document.getElementById('student-q-card').style.display = 'none';
-    const wv = document.getElementById('student-waiting-view');
-    wv.style.display = 'flex';
-    document.getElementById('student-wait-title').textContent = '🏆 Vụ án kết thúc!';
-    document.getElementById('student-wait-sub').textContent = `Tổng điểm của bạn: ${this.score} điểm`;
-    
-    document.getElementById('student-sw-dots').style.display = 'none';
-    const ctrl = document.getElementById('student-game-over-ctrl');
-    ctrl.style.display = 'flex';
-    document.getElementById('student-final-score').textContent = this.score;
+    document.getElementById('student-waiting-view').style.display = 'none';
 
-    spawnConfetti();
+    if (leaderboard) {
+      const list = document.getElementById('room-results-list');
+      list.innerHTML = leaderboard.map((p, i) => {
+        let crown = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
+        let bg = i === 0 ? 'linear-gradient(90deg, rgba(255,215,0,0.2), transparent)' : 'var(--space2)';
+        let border = i === 0 ? '1px solid var(--yellow)' : '1px solid transparent';
+        let isMe = p.name === S.name;
+        if (isMe) {
+            bg = 'linear-gradient(90deg, rgba(46,213,115,0.2), transparent)';
+            border = '1px solid var(--green)';
+        }
+        return `<div style="display:flex;align-items:center;background:${bg};border:${border};padding:12px 16px;border-radius:12px;">
+                  <div style="font-size:24px;width:40px;text-align:center;">${crown}</div>
+                  <div style="flex:1;font-weight:800;font-size:18px;margin-left:10px;">${p.name} ${isMe ? ' (Bạn)' : ''}</div>
+                  <div style="font-family:var(--font-title);font-size:24px;color:var(--yellow);">${p.score}</div>
+                </div>`;
+      }).join('');
+      document.getElementById('btn-room-results-close').onclick = () => this.exitToMenu();
+      showScreen('screen-room-results');
+      spawnConfetti();
+    } else {
+      // Fallback
+      const wv = document.getElementById('student-waiting-view');
+      wv.style.display = 'flex';
+      document.getElementById('student-wait-title').textContent = '🏆 Vụ án kết thúc!';
+      document.getElementById('student-wait-sub').textContent = `Tổng điểm của bạn: ${this.score} điểm`;
+      document.getElementById('student-sw-dots').style.display = 'none';
+      const ctrl = document.getElementById('student-game-over-ctrl');
+      ctrl.style.display = 'flex';
+      document.getElementById('student-final-score').textContent = this.score;
+      spawnConfetti();
+    }
   },
 
   _showStudentFB(phase, icon, html, type) {
