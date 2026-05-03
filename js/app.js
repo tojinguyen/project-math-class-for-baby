@@ -58,62 +58,84 @@ const QuestionManager = {
     window._bankQuestions = null;
   },
 
-  getQuestions(totalCount) {
-    const pool = this.bank;
-    if (pool.length === 0) {
+  getQuestions(totalCount, options = {}) {
+    const bank = this.bank;
+    if (bank.length === 0) {
       toast('Ngân hàng đề trống! Hãy nạp đề ở phần Hồ Sơ.', 'warn');
       return [];
     }
 
-    // Group by difficulty
-    const easy = pool.filter(q => q.difficulty === 'easy');
-    const medium = pool.filter(q => q.difficulty === 'medium');
-    const hard = pool.filter(q => q.difficulty === 'hard');
-
-    // Calculate target counts (50% / 30% / 20%)
-    let nEasy = Math.max(1, Math.round(totalCount * 0.5));
-    let nMedium = Math.max(1, Math.round(totalCount * 0.3));
-    let nHard = totalCount - nEasy - nMedium;
-
-    // Safety adjustment if groups are empty
-    const select = (group, count) => {
+    // Helper: pick up to `count` questions from a group, preferring unique topics
+    const selectFrom = (group, count) => {
+      if (count <= 0) return [];
       const shuffled = [...group].sort(() => Math.random() - 0.5);
-      // Try to get unique topics if possible
       const selected = [];
       const topics = new Set();
-
-      // First pass: unique topics
       for (const q of shuffled) {
-        if (selected.length < count && !topics.has(q.topic)) {
-          selected.push(q);
-          topics.add(q.topic);
-        }
+        if (selected.length >= count) break;
+        if (!topics.has(q.topic)) { selected.push(q); topics.add(q.topic); }
       }
-
-      // Second pass: fill remaining
       for (const q of shuffled) {
-        if (selected.length < count && !selected.includes(q)) {
-          selected.push(q);
-        }
+        if (selected.length >= count) break;
+        if (!selected.includes(q)) selected.push(q);
       }
       return selected;
     };
 
-    let result = [];
-    result = result.concat(select(easy, nEasy));
-    result = result.concat(select(medium, nMedium));
-    result = result.concat(select(hard, nHard));
+    // ── Solo / Practice mode: single difficulty filter ──
+    if (options.difficultyFilter) {
+      let pool = bank.filter(q => q.difficulty === options.difficultyFilter);
+      if (pool.length === 0) {
+        toast('Chưa có câu hỏi ở cấp độ này! Đang dùng câu bất kỳ.', 'warn');
+        pool = bank;
+      }
+      return selectFrom(pool, totalCount).sort(() => Math.random() - 0.5).slice(0, totalCount);
+    }
 
-    // Final fallback: if result is too short, fill with any remaining questions
+    // ── Mixed mode (challenge or default): group by difficulty, apply ratios ──
+    const easy   = bank.filter(q => q.difficulty === 'easy');
+    const medium = bank.filter(q => q.difficulty === 'medium');
+    const hard   = bank.filter(q => q.difficulty === 'hard');
+
+    const ratios = options.ratios || { easy: 0.5, medium: 0.3, hard: 0.2 };
+    let nEasy   = Math.max(0, Math.round(totalCount * ratios.easy));
+    let nMedium = Math.max(0, Math.round(totalCount * ratios.medium));
+    let nHard   = Math.max(0, totalCount - nEasy - nMedium);
+
+    let result = [
+      ...selectFrom(easy,   nEasy),
+      ...selectFrom(medium, nMedium),
+      ...selectFrom(hard,   nHard),
+    ];
+
+    // Fallback: fill remaining slots with any question not yet selected
     if (result.length < totalCount) {
-      const remaining = pool.filter(q => !result.includes(q));
-      const extra = [...remaining].sort(() => Math.random() - 0.5).slice(0, totalCount - result.length);
+      const extra = bank.filter(q => !result.includes(q))
+        .sort(() => Math.random() - 0.5)
+        .slice(0, totalCount - result.length);
       result = result.concat(extra);
     }
 
-    // Shuffle final set
     return result.sort(() => Math.random() - 0.5).slice(0, totalCount);
   }
+};
+
+/* ══ PRACTICE LEVEL SYSTEM ══ */
+const PracticeLevel = {
+  LEVELS: [
+    { id: 1, name: 'Dễ',         difficulty: 'easy',   emoji: '🟢', color: '#2ed573' },
+    { id: 2, name: 'Trung Bình', difficulty: 'medium', emoji: '🟡', color: '#f5c518' },
+    { id: 3, name: 'Khó',        difficulty: 'hard',   emoji: '🔴', color: '#ff4757' },
+  ],
+  getKey(name) { return `${name.trim()}_practice_level`; },
+  getLevel(name) {
+    const v = parseInt(localStorage.getItem(this.getKey(name)));
+    return isNaN(v) ? 1 : Math.max(1, Math.min(3, v));
+  },
+  setLevel(name, level) {
+    localStorage.setItem(this.getKey(name), Math.max(1, Math.min(3, level)));
+  },
+  getLevelInfo(level) { return this.LEVELS[(level || 1) - 1]; },
 };
 
 /* ══ XP SYSTEM ══ */
@@ -437,6 +459,20 @@ const XP = {
       }
 
       if (errorEl) errorEl.style.display = 'none';
+
+      // Show practice level badge
+      const lvBadge = document.getElementById('wx-practice-level');
+      if (lvBadge) {
+        if (name && isOwner) {
+          const lv = PracticeLevel.getLevel(name);
+          const lvInfo = PracticeLevel.getLevelInfo(lv);
+          lvBadge.innerHTML = `Cấp tự luyện: ${lvInfo.emoji} <strong>${lvInfo.name}</strong>`;
+          lvBadge.style.color = lvInfo.color;
+          lvBadge.style.display = 'block';
+        } else {
+          lvBadge.style.display = 'none';
+        }
+      }
     }, name === this._currentName ? 0 : 500);
 
     this._currentName = name;
@@ -839,9 +875,12 @@ const Game = {
     S.active = true;
     HP.reset(); Streak.reset();
 
-    // Determine question count (default 5-8 range as requested)
-    const count = window._bankQCount || (6 + Math.floor(Math.random() * 3)); // Random 6-8 if not set
-    S.activeQuestions = QuestionManager.getQuestions(count);
+    // Load practice level for this player
+    S.practiceLevel = PracticeLevel.getLevel(S.name);
+    const lvInfo = PracticeLevel.getLevelInfo(S.practiceLevel);
+
+    const count = window._bankQCount || (6 + Math.floor(Math.random() * 3));
+    S.activeQuestions = QuestionManager.getQuestions(count, { difficultyFilter: lvInfo.difficulty });
 
     showScreen('screen-game');
     Briefing.show(0, S.activeQuestions[0]).then(() => renderQ(0));
@@ -1077,6 +1116,37 @@ const Game = {
     });
 
     if (p >= 80) setTimeout(spawnConfetti, 500);
+
+    // ── Practice Level evaluation (solo mode only) ──
+    const levelEl = document.getElementById('res-level-msg');
+    if (levelEl && S.practiceLevel !== undefined) {
+      const dOkCount = S.qResults.filter(r => r && r.dOk).length;
+      const cOkCount = S.qResults.filter(r => r && r.cOk).length;
+      const accuracyPct = Math.round((dOkCount + cOkCount) / (S.activeQuestions.length * 2) * 100);
+      const currentLv = PracticeLevel.getLevelInfo(S.practiceLevel);
+      const canLevelUp = accuracyPct >= 80 && S.activeQuestions.length >= 5 && S.practiceLevel < 3;
+
+      if (canLevelUp) {
+        const newLv = S.practiceLevel + 1;
+        PracticeLevel.setLevel(S.name, newLv);
+        const newLvInfo = PracticeLevel.getLevelInfo(newLv);
+        S.practiceLevel = newLv;
+        levelEl.innerHTML = `<div class="level-up-banner">🎉 Bạn đã mở khóa cấp <strong>${newLvInfo.name}</strong>! Ván tiếp theo sẽ khó hơn.</div>`;
+        setTimeout(spawnConfetti, 200);
+      } else if (S.practiceLevel < 3) {
+        const nextLv = PracticeLevel.getLevelInfo(S.practiceLevel + 1);
+        const shortfall = S.activeQuestions.length < 5;
+        const msg = shortfall
+          ? `Cần ít nhất 5 câu và đạt 80% để lên cấp ${nextLv.name}.`
+          : `Bạn đạt ${accuracyPct}% — cần 80% để lên cấp ${nextLv.name}. Thử lại nhé!`;
+        levelEl.innerHTML = `<div class="level-info-banner">${currentLv.emoji} Cấp <strong>${currentLv.name}</strong> — ${msg}</div>`;
+      } else {
+        levelEl.innerHTML = `<div class="level-info-banner">👑 Bạn đang ở cấp cao nhất: ${currentLv.emoji} <strong>${currentLv.name}</strong> — Đạt ${accuracyPct}%!</div>`;
+      }
+    } else if (levelEl) {
+      levelEl.innerHTML = '';
+    }
+
     this.save();
   },
   async save() {
@@ -1506,9 +1576,23 @@ const Lobby = {
       if (disp) disp.textContent = name;
     }
   },
+  _presets: {
+    review: { easy: 0.70, medium: 0.30, hard: 0.00 },
+    normal: { easy: 0.40, medium: 0.40, hard: 0.20 },
+    exam:   { easy: 0.20, medium: 0.50, hard: 0.30 },
+  },
+  _selectedPreset: 'review',
+
+  selectPreset(el) {
+    document.querySelectorAll('.host-preset-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    this._selectedPreset = el.dataset.preset;
+  },
+
   startHost() {
     const count = parseInt(document.getElementById('host-q-count').value) || 5;
-    RoomHost.init(count);
+    const ratios = this._presets[this._selectedPreset] || this._presets.normal;
+    RoomHost.init(count, ratios);
   },
   joinRoom() {
     const rawCode = document.getElementById('join-code-input').value.trim().toUpperCase();
@@ -1538,8 +1622,8 @@ const RoomHost = {
   qIdx: 0, phase: 'detect', gameStarted: false,
   timer: null, elapsed: 0,
 
-  init(qCount) {
-    this.activeQuestions = QuestionManager.getQuestions(qCount);
+  init(qCount, ratios) {
+    this.activeQuestions = QuestionManager.getQuestions(qCount, { ratios });
     this.qIdx = 0; this.gameStarted = false;
     this.conns = {};
 

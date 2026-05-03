@@ -69,6 +69,7 @@
             <div class="wx-fill" id="wx-fill" style="height: 100%; width: 0%; background: #2ed573; transition: width 0.4s ease, background 0.4s ease;"></div>
           </div>
           <div class="wx-next" id="wx-next" style="font-size: 12px; color: var(--white-ghost); text-align: right; font-style: italic;">Đang tải thông tin...</div>
+          <div id="wx-practice-level" style="display:none; font-size:13px; font-weight:800; margin-top:6px; text-align:center; letter-spacing:0.5px;"></div>
         </div>
       </div>
       <div class="welcome-name-hint">Tên hiển thị trên bảng xếp hạng Tự Luyện</div>
@@ -128,6 +129,98 @@
       background: var(--white-ghost);
       opacity: 0.5;
       cursor: not-allowed;
+    }
+
+    /* ── Practice Level banners (results screen) ── */
+    .level-up-banner {
+      background: linear-gradient(135deg, rgba(46,213,115,0.15), rgba(46,213,115,0.05));
+      border: 1.5px solid #2ed573;
+      border-radius: 10px;
+      color: #2ed573;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 10px 16px;
+      margin: 10px 16px 0;
+      text-align: center;
+    }
+    .level-info-banner {
+      background: rgba(0,0,0,0.18);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--white-ghost);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 16px;
+      margin: 10px 16px 0;
+      text-align: center;
+    }
+
+    /* ── Lobby difficulty preset cards ── */
+    .host-diff-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--white-ghost);
+      margin: 10px 0 6px;
+    }
+    .host-preset-row {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .host-preset-card {
+      flex: 1;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 6px;
+      cursor: pointer;
+      background: rgba(0,0,0,0.15);
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      text-align: center;
+      user-select: none;
+    }
+    .host-preset-card:hover {
+      border-color: var(--yellow);
+      transform: translateY(-2px);
+    }
+    .host-preset-card.active {
+      border-color: var(--yellow);
+      background: rgba(245,197,24,0.1);
+    }
+    .hpc-name {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.8px;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .host-preset-card.active .hpc-name { color: var(--yellow); }
+    .hpc-bars { display: flex; flex-direction: column; gap: 3px; text-align: left; }
+    .hpc-bar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--white-ghost);
+    }
+    .hpc-bar span:nth-child(2) { flex: 1; }
+    .hpc-bar strong { color: var(--white); font-size: 11px; }
+    .hpc-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .hpc-dot.easy   { background: #2ed573; }
+    .hpc-dot.medium { background: #f5c518; }
+    .hpc-dot.hard   { background: #ff4757; }
+    .hpc-hint {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--white-ghost);
+      margin-top: 5px;
+      opacity: 0.7;
+      font-style: italic;
     }
   </style>
 
@@ -245,6 +338,36 @@
               <span class="hsr-label">SỐ CÂU:</span>
               <input type="number" class="hsr-input" id="host-q-count" min="1" max="20" value="7">
               <span class="hsr-note" id="host-q-note">/ 5 câu có sẵn</span>
+            </div>
+            <div class="host-diff-label">CHẾ ĐỘ ĐỀ:</div>
+            <div class="host-preset-row" id="host-preset-row">
+              <div class="host-preset-card active" data-preset="review" onclick="Lobby.selectPreset(this)">
+                <div class="hpc-name">ÔN TẬP</div>
+                <div class="hpc-bars">
+                  <div class="hpc-bar"><span class="hpc-dot easy"></span><span>Dễ</span><strong>70%</strong></div>
+                  <div class="hpc-bar"><span class="hpc-dot medium"></span><span>T.Bình</span><strong>30%</strong></div>
+                  <div class="hpc-bar"><span class="hpc-dot hard"></span><span>Khó</span><strong>0%</strong></div>
+                </div>
+                <div class="hpc-hint">Lớp mới học</div>
+              </div>
+              <div class="host-preset-card" data-preset="normal" onclick="Lobby.selectPreset(this)">
+                <div class="hpc-name">THƯỜNG</div>
+                <div class="hpc-bars">
+                  <div class="hpc-bar"><span class="hpc-dot easy"></span><span>Dễ</span><strong>40%</strong></div>
+                  <div class="hpc-bar"><span class="hpc-dot medium"></span><span>T.Bình</span><strong>40%</strong></div>
+                  <div class="hpc-bar"><span class="hpc-dot hard"></span><span>Khó</span><strong>20%</strong></div>
+                </div>
+                <div class="hpc-hint">Lớp đã học</div>
+              </div>
+              <div class="host-preset-card" data-preset="exam" onclick="Lobby.selectPreset(this)">
+                <div class="hpc-name">THI THỬ</div>
+                <div class="hpc-bars">
+                  <div class="hpc-bar"><span class="hpc-dot easy"></span><span>Dễ</span><strong>20%</strong></div>
+                  <div class="hpc-bar"><span class="hpc-dot medium"></span><span>T.Bình</span><strong>50%</strong></div>
+                  <div class="hpc-bar"><span class="hpc-dot hard"></span><span>Khó</span><strong>30%</strong></div>
+                </div>
+                <div class="hpc-hint">Lớp sắp thi</div>
+              </div>
             </div>
             <button class="btn-lobby btn-host-start" onclick="Lobby.startHost()">
               🚀 Tạo phòng &amp; bắt đầu
@@ -710,6 +833,7 @@
           </div>
         </div>
         <div class="res-badges" id="res-badges"></div>
+        <div id="res-level-msg"></div>
         <div class="res-stats">
           <div class="res-stat"><div class="rs-label">TÌM ĐÚNG</div><div class="rs-val" id="rb-det">—<span>%</span></div></div>
           <div class="res-stat"><div class="rs-label">SỬA ĐÚNG</div><div class="rs-val" id="rb-cor">—<span>%</span></div></div>

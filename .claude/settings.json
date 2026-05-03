@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check \"d:\\\\THAO_IU\\\\project-math-class-for-baby\\\\js\\\\app.js\")",
+      "Bash(npx --version)"
+    ]
+  }
+}
