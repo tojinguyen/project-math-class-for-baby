@@ -55,7 +55,7 @@ const QuestionManager = {
 
   clear() {
     this.bank = [];
-    window._bankQuestions = null;
+    window._bankQuestions = [];
   },
 
   getQuestions(totalCount, options = {}) {
@@ -1360,13 +1360,15 @@ const CloudBank = {
   },
 
   async deleteAll() {
-    if (!LeaderboardSync.enabled || !window.supabase) return;
+    if (!LeaderboardSync.enabled || !window.supabase) throw new Error('Supabase chưa được kết nối.');
     LeaderboardSync.init();
-    const { error } = await LeaderboardSync.client
+    const { data, error } = await LeaderboardSync.client
       .from('questions')
       .delete()
-      .neq('id', 0);
+      .not('id', 'is', null)
+      .select('id');
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Không xóa được dữ liệu. Kiểm tra quyền DELETE trong Supabase RLS.');
   },
 
   mapFromDB(data) {
@@ -1521,7 +1523,7 @@ const Profile = {
       await CloudBank.deleteAll();
     } catch (e) {
       console.error('Xóa database thất bại:', e);
-      toast('Xóa database thất bại!', 'warn');
+      toast('Xóa thất bại: ' + (e.message || e), 'warn');
       return;
     }
     QuestionManager.clear();
