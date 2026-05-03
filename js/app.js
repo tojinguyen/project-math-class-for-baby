@@ -524,6 +524,36 @@ const S = {
   hp: 3, maxHp: 3, streak: 0, bestStreak: 0, comboMult: 1,
 };
 
+/* ══ SESSION PERSISTENCE ══ */
+const SessionManager = {
+  KEY: 'erase_room_session',
+  GAME_KEY: 'erase_game_session',
+  saveStudent(roomCode, name) {
+    sessionStorage.setItem(this.KEY, JSON.stringify({ role: 'student', roomCode, name }));
+  },
+  saveHost(roomCode, activeQuestions, qIdx, gameStarted) {
+    sessionStorage.setItem(this.KEY, JSON.stringify({ role: 'host', roomCode, activeQuestions, qIdx, gameStarted }));
+  },
+  clear() { sessionStorage.removeItem(this.KEY); },
+  get() {
+    try { const r = sessionStorage.getItem(this.KEY); return r ? JSON.parse(r) : null; }
+    catch (e) { return null; }
+  },
+  saveGame() {
+    sessionStorage.setItem(this.GAME_KEY, JSON.stringify({
+      name: S.name, qIdx: S.qIdx, score: S.score,
+      qResults: S.qResults, analytics: S.analytics,
+      hp: S.hp, streak: S.streak, bestStreak: S.bestStreak, comboMult: S.comboMult,
+      activeQuestions: S.activeQuestions,
+    }));
+  },
+  clearGame() { sessionStorage.removeItem(this.GAME_KEY); },
+  getGame() {
+    try { const r = sessionStorage.getItem(this.GAME_KEY); return r ? JSON.parse(r) : null; }
+    catch (e) { return null; }
+  }
+};
+
 /* ══ UTILS ══ */
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -882,13 +912,15 @@ const Game = {
     const count = window._bankQCount || (6 + Math.floor(Math.random() * 3));
     S.activeQuestions = QuestionManager.getQuestions(count, { difficultyFilter: lvInfo.difficulty });
 
+    SessionManager.saveGame();
     showScreen('screen-game');
     Briefing.show(0, S.activeQuestions[0]).then(() => renderQ(0));
   },
-  exitToMenu() { stopTimer(); S.active = false; showScreen('screen-welcome'); },
+  exitToMenu() { SessionManager.clearGame(); stopTimer(); S.active = false; showScreen('screen-welcome'); },
   restartGame() { this.startGame(); },
   showDashboard() { showScreen('screen-dashboard'); Dashboard.init(); },
   gameOver() {
+    SessionManager.clearGame();
     stopTimer(); showScreen('screen-gameover');
     document.getElementById('go-score').textContent = S.score;
     const p = pct(S.score, S.activeQuestions.length * 25);
@@ -1043,10 +1075,12 @@ const Game = {
     stopTimer(); renderStamps(S.qIdx);
     if (S.qIdx + 1 >= S.activeQuestions.length) { this.showResults(); return; }
     S.qIdx++;
+    SessionManager.saveGame();
     Briefing.show(S.qIdx, S.activeQuestions[S.qIdx]).then(() => renderQ(S.qIdx));
   },
 
   showResults() {
+    SessionManager.clearGame();
     stopTimer(); showScreen('screen-results');
     const maxPts = S.activeQuestions.length * 25;
     const p = pct(S.score, maxPts);
@@ -1650,8 +1684,6 @@ const RoomHost = {
     // Generate room code: ERAS-XXXX
     const rand = Math.floor(1000 + Math.random() * 9000);
     this.roomCode = 'ERAS' + rand;
-    const peerId = 'erase-room-' + this.roomCode;
-    console.log('RoomHost: Creating Peer with ID:', peerId);
 
     showScreen('screen-host');
     document.getElementById('hb-room-code').textContent = this.roomCode;
@@ -1659,12 +1691,49 @@ const RoomHost = {
     document.getElementById('host-waiting-view').style.display = 'flex';
     document.getElementById('host-game-view').style.display = 'none';
 
-    // Check if Peer exists
     if (typeof Peer === 'undefined') {
       toast('Lỗi: Thư viện PeerJS không tải được. Kiểm tra kết nối mạng!', 'err');
       showScreen('screen-lobby');
       return;
     }
+
+    SessionManager.saveHost(this.roomCode, this.activeQuestions, this.qIdx, false);
+    this._createPeer();
+  },
+
+  restore(session) {
+    this.roomCode = session.roomCode;
+    this.activeQuestions = session.activeQuestions;
+    this.qIdx = session.qIdx;
+    this.gameStarted = session.gameStarted;
+    this.conns = {};
+
+    showScreen('screen-host');
+    document.getElementById('hb-room-code').textContent = this.roomCode;
+    document.getElementById('hwcd-code').textContent = this.roomCode;
+
+    if (this.gameStarted) {
+      document.getElementById('host-waiting-view').style.display = 'none';
+      const gv = document.getElementById('host-game-view');
+      gv.style.display = 'flex'; gv.style.flexDirection = 'column';
+      document.getElementById('host-q-num').style.display = 'flex';
+      document.getElementById('host-timer-wrap').style.display = 'flex';
+      this._loadCase(this.qIdx);
+    } else {
+      document.getElementById('host-waiting-view').style.display = 'flex';
+      document.getElementById('host-game-view').style.display = 'none';
+    }
+
+    if (typeof Peer === 'undefined') {
+      toast('Lỗi: Thư viện PeerJS không tải được!', 'err');
+      return;
+    }
+    this._createPeer(0, true);
+  },
+
+  _createPeer(retryCount = 0, isRestore = false) {
+    const peerId = 'erase-room-' + this.roomCode;
+    console.log('RoomHost: Creating Peer with ID:', peerId, isRestore ? '(restore)' : '');
 
     if (this.peer) { try { this.peer.destroy(); } catch (e) { } }
 
@@ -1679,7 +1748,7 @@ const RoomHost = {
     });
     this.peer.on('open', id => {
       console.log('Host Peer opened with ID:', id);
-      toast('✓ Phòng đã tạo: ' + this.roomCode, 'ok');
+      toast(isRestore ? ('✓ Đã khôi phục phòng: ' + this.roomCode) : ('✓ Phòng đã tạo: ' + this.roomCode), 'ok');
     });
     this.peer.on('connection', conn => this._onConnection(conn));
     this.peer.on('disconnected', () => {
@@ -1689,12 +1758,23 @@ const RoomHost = {
     this.peer.on('error', err => {
       console.error('Host Peer Error:', err);
       if (err.type === 'unavailable-id') {
-        toast('Mã phòng đã tồn tại, thử lại!', 'err');
-        showScreen('screen-lobby');
+        if (isRestore && retryCount < 5) {
+          const wait = (retryCount + 1) * 3;
+          toast(`Đang chờ phiên cũ hết hạn... thử lại sau ${wait}s`, '');
+          setTimeout(() => this._createPeer(retryCount + 1, true), wait * 1000);
+        } else {
+          toast('Mã phòng đã tồn tại, thử lại!', 'err');
+          SessionManager.clear();
+          showScreen('screen-lobby');
+        }
       } else {
         toast('Lỗi kết nối: ' + err.type, 'err');
       }
     });
+  },
+
+  _saveSession() {
+    SessionManager.saveHost(this.roomCode, this.activeQuestions, this.qIdx, this.gameStarted);
   },
 
   _onConnection(conn) {
@@ -1823,6 +1903,7 @@ const RoomHost = {
 
   startGame() {
     this.gameStarted = true;
+    this._saveSession();
     document.getElementById('host-waiting-view').style.display = 'none';
     const gv = document.getElementById('host-game-view');
     gv.style.display = 'flex'; gv.style.flexDirection = 'column';
@@ -1834,6 +1915,7 @@ const RoomHost = {
   _loadCase(idx) {
     const q = this.activeQuestions[idx];
     this.phase = 'detect'; this.qIdx = idx;
+    this._saveSession();
     // Reset all player states
     Object.values(this.conns).forEach(p => {
       p.dAttempt = 0; p.cAttempt = 0; p.answered = false; p.cAnswered = false; p.dOk = false;
@@ -2051,6 +2133,7 @@ const RoomHost = {
   _stopTimer() { clearInterval(this.timer); this.timer = null; },
 
   exitToMenu() {
+    SessionManager.clear();
     this._stopTimer();
     if (this.peer) { this.peer.destroy(); this.peer = null; }
     showScreen('screen-welcome');
@@ -2070,6 +2153,7 @@ const RoomStudent = {
   init(code, name) {
     this.name = name; this.roomCode = code; this.score = 0;
     this.dAttempt = 0; this.cAttempt = 0; this.selected = null;
+    SessionManager.saveStudent(code, name);
 
     showScreen('screen-student');
     document.getElementById('sb-name').textContent = name;
@@ -2457,6 +2541,7 @@ const RoomStudent = {
   },
 
   exitToMenu() {
+    SessionManager.clear();
     if (this.hostConn) this.hostConn.close();
     location.reload();
   }
@@ -2466,5 +2551,43 @@ const RoomStudent = {
 document.addEventListener('DOMContentLoaded', () => {
   XP.renderWelcome();
   QuestionManager.init();
+
+  const session = SessionManager.get();
+  if (session) {
+    setTimeout(() => {
+      if (session.role === 'student') {
+        toast('Đang kết nối lại phòng ' + session.roomCode + '...', 'ok');
+        RoomStudent.init(session.roomCode, session.name);
+      } else if (session.role === 'host') {
+        toast('Đang khôi phục phòng ' + session.roomCode + '...', 'ok');
+        RoomHost.restore(session);
+      }
+    }, 600);
+  }
+
+  const gameSave = !session && SessionManager.getGame();
+  if (gameSave && gameSave.activeQuestions && gameSave.activeQuestions.length) {
+    setTimeout(() => {
+      Object.assign(S, {
+        name: gameSave.name,
+        qIdx: gameSave.qIdx,
+        score: gameSave.score,
+        qResults: gameSave.qResults || [],
+        analytics: gameSave.analytics || { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] },
+        hp: gameSave.hp,
+        streak: gameSave.streak,
+        bestStreak: gameSave.bestStreak,
+        comboMult: gameSave.comboMult,
+        activeQuestions: gameSave.activeQuestions,
+        active: true,
+      });
+      toast('Đã khôi phục game — tiếp tục vụ án ' + (S.qIdx + 1) + '!', 'ok');
+      showScreen('screen-game');
+      HP.render();
+      Streak.render();
+      updateScoreUI();
+      renderQ(S.qIdx);
+    }, 600);
+  }
 });
 
