@@ -128,6 +128,7 @@ const PracticeLevel = {
     { id: 3, name: 'Khó',        difficulty: 'hard',   emoji: '🔴', color: '#ff4757' },
   ],
   getKey(name) { return `${name.trim()}_practice_level`; },
+  getHistoryKey(name, level) { return `${name.trim()}_practice_hist_lv${level}`; },
   getLevel(name) {
     const v = parseInt(localStorage.getItem(this.getKey(name)));
     return isNaN(v) ? 1 : Math.max(1, Math.min(3, v));
@@ -136,6 +137,48 @@ const PracticeLevel = {
     localStorage.setItem(this.getKey(name), Math.max(1, Math.min(3, level)));
   },
   getLevelInfo(level) { return this.LEVELS[(level || 1) - 1]; },
+  getHistory(name, level) {
+    try {
+      const raw = localStorage.getItem(this.getHistoryKey(name, level));
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  },
+  clearHistory(name, level) {
+    localStorage.removeItem(this.getHistoryKey(name, level));
+  },
+  // Add game result, keep only last 2. Returns updated history array.
+  _pushResult(name, level, accuracyPct) {
+    const hist = this.getHistory(name, level);
+    hist.push(accuracyPct);
+    const trimmed = hist.slice(-2);
+    localStorage.setItem(this.getHistoryKey(name, level), JSON.stringify(trimmed));
+    return trimmed;
+  },
+  // Evaluate level change after a game. Returns { action: 'up'|'down'|null, newLevel, history }
+  evaluate(name, currentLevel, accuracyPct) {
+    const history = this._pushResult(name, currentLevel, accuracyPct);
+    if (history.length < 2) return { action: null, newLevel: currentLevel, history };
+
+    const last2 = history.slice(-2);
+    const bothAbove80 = last2.every(p => p >= 80);
+    const bothBelow50 = last2.every(p => p < 50);
+
+    if (bothAbove80 && currentLevel < 3) {
+      const newLevel = currentLevel + 1;
+      this.setLevel(name, newLevel);
+      this.clearHistory(name, currentLevel);
+      this.clearHistory(name, newLevel);
+      return { action: 'up', newLevel, history };
+    }
+    if (bothBelow50 && currentLevel > 1) {
+      const newLevel = currentLevel - 1;
+      this.setLevel(name, newLevel);
+      this.clearHistory(name, currentLevel);
+      this.clearHistory(name, newLevel);
+      return { action: 'down', newLevel, history };
+    }
+    return { action: null, newLevel: currentLevel, history };
+  },
 };
 
 /* ══ XP SYSTEM ══ */
@@ -916,16 +959,45 @@ const Game = {
     showScreen('screen-game');
     Briefing.show(0, S.activeQuestions[0]).then(() => renderQ(0));
   },
-  exitToMenu() { SessionManager.clearGame(); stopTimer(); S.active = false; showScreen('screen-welcome'); },
+  exitToMenu() {
+    SessionManager.clearGame(); stopTimer(); S.active = false;
+    XP.renderWelcome(); // Update level text
+    showScreen('screen-welcome');
+  },
   restartGame() { this.startGame(); },
   gameOver() {
     SessionManager.clearGame();
     stopTimer(); showScreen('screen-gameover');
     document.getElementById('go-score').textContent = S.score;
     const p = pct(S.score, S.activeQuestions.length * 25);
+    
+    // Evaluate practice level on game over
+    let practiceMsg = '';
+    if (S.practiceLevel !== undefined) {
+      let totalAccPts = 0;
+      const maxAccPts = S.activeQuestions.length * 2;
+      S.activeQuestions.forEach((_, i) => {
+        const da = S.analytics.dAttempts[i];
+        const ca = S.analytics.cAttempts[i];
+        if (da === 1) totalAccPts += 1.0;
+        else if (da === 2) totalAccPts += 0.5;
+        if (ca === 1) totalAccPts += 1.0;
+        else if (ca === 2) totalAccPts += 0.5;
+      });
+      const accuracyPct = Math.round((totalAccPts / maxAccPts) * 100);
+      const result = PracticeLevel.evaluate(S.name, S.practiceLevel, accuracyPct);
+      if (result.action === 'down') {
+        S.practiceLevel = result.newLevel;
+        const newLvInfo = PracticeLevel.getLevelInfo(result.newLevel);
+        practiceMsg = `<br><br><span style="color:#ff4757">📉 2 ván liên tiếp < 50% — Bạn đã bị hạ về cấp <strong>${newLvInfo.name}</strong> để luyện tập thêm!</span>`;
+      } else if (accuracyPct < 50 && S.practiceLevel > 1) {
+        practiceMsg = `<br><br><span style="color:#f5c518">⚠️ Cẩn thận! Nếu đạt < 50% ở ván tiếp theo, bạn sẽ bị hạ cấp!</span>`;
+      }
+    }
+
     let msg = 'Ôn lại quy tắc chuyển vế rồi nhận vụ mới! +a → −a, −a → +a 💪';
     if (p >= 50) msg = 'Suýt rồi! Lần sau cẩn thận hơn là phá án ngay!';
-    document.getElementById('go-msg').textContent = msg;
+    document.getElementById('go-msg').innerHTML = msg + practiceMsg;
   },
 
   submitDetection() {
@@ -1153,28 +1225,53 @@ const Game = {
     // ── Practice Level evaluation (solo mode only) ──
     const levelEl = document.getElementById('res-level-msg');
     if (levelEl && S.practiceLevel !== undefined) {
-      const dOkCount = S.qResults.filter(r => r && r.dOk).length;
-      const cOkCount = S.qResults.filter(r => r && r.cOk).length;
-      const accuracyPct = Math.round((dOkCount + cOkCount) / (S.activeQuestions.length * 2) * 100);
-      const currentLv = PracticeLevel.getLevelInfo(S.practiceLevel);
-      const canLevelUp = accuracyPct >= 80 && S.activeQuestions.length >= 5 && S.practiceLevel < 3;
+      // Accuracy: each question = 2 pts (1 detect + 1 correct), partial credit for 2nd attempt
+      let totalAccPts = 0;
+      const maxAccPts = S.activeQuestions.length * 2;
+      S.activeQuestions.forEach((_, i) => {
+        const da = S.analytics.dAttempts[i];
+        const ca = S.analytics.cAttempts[i];
+        if (da === 1) totalAccPts += 1.0;
+        else if (da === 2) totalAccPts += 0.5;
+        if (ca === 1) totalAccPts += 1.0;
+        else if (ca === 2) totalAccPts += 0.5;
+      });
+      const accuracyPct = Math.round((totalAccPts / maxAccPts) * 100);
 
-      if (canLevelUp) {
-        const newLv = S.practiceLevel + 1;
-        PracticeLevel.setLevel(S.name, newLv);
-        const newLvInfo = PracticeLevel.getLevelInfo(newLv);
-        S.practiceLevel = newLv;
-        levelEl.innerHTML = `<div class="level-up-banner">🎉 Bạn đã mở khóa cấp <strong>${newLvInfo.name}</strong>! Ván tiếp theo sẽ khó hơn.</div>`;
+      const result = PracticeLevel.evaluate(S.name, S.practiceLevel, accuracyPct);
+
+      if (result.action === 'up') {
+        const newLvInfo = PracticeLevel.getLevelInfo(result.newLevel);
+        S.practiceLevel = result.newLevel;
+        levelEl.innerHTML = `<div class="level-up-banner">🎉 THĂNG CẤP! 2 ván liên tiếp ≥ 80% — Bạn đã mở khóa cấp <strong>${newLvInfo.name}</strong>! Ván tiếp theo sẽ khó hơn.</div>`;
         setTimeout(spawnConfetti, 200);
-      } else if (S.practiceLevel < 3) {
-        const nextLv = PracticeLevel.getLevelInfo(S.practiceLevel + 1);
-        const shortfall = S.activeQuestions.length < 5;
-        const msg = shortfall
-          ? `Cần ít nhất 5 câu và đạt 80% để lên cấp ${nextLv.name}.`
-          : `Bạn đạt ${accuracyPct}% — cần 80% để lên cấp ${nextLv.name}. Thử lại nhé!`;
-        levelEl.innerHTML = `<div class="level-info-banner">${currentLv.emoji} Cấp <strong>${currentLv.name}</strong> — ${msg}</div>`;
+      } else if (result.action === 'down') {
+        const newLvInfo = PracticeLevel.getLevelInfo(result.newLevel);
+        S.practiceLevel = result.newLevel;
+        levelEl.innerHTML = `<div class="level-info-banner">📉 2 ván liên tiếp < 50% — Về cấp <strong>${newLvInfo.name}</strong> để ôn tập thêm. Đạt ≥ 80% trong 2 ván liên tiếp để thăng cấp!</div>`;
       } else {
-        levelEl.innerHTML = `<div class="level-info-banner">👑 Bạn đang ở cấp cao nhất: ${currentLv.emoji} <strong>${currentLv.name}</strong> — Đạt ${accuracyPct}%!</div>`;
+        const currentLv = PracticeLevel.getLevelInfo(S.practiceLevel);
+        const hist = result.history; // last 1–2 results including current game
+        let msg = '';
+        if (S.practiceLevel < 3) {
+          const nextLvInfo = PracticeLevel.getLevelInfo(S.practiceLevel + 1);
+          if (accuracyPct >= 80) {
+            msg = `🔥 Ván này đạt <strong>${accuracyPct}%</strong>! Đạt ≥ 80% ván tiếp nữa để lên cấp ${nextLvInfo.emoji} <strong>${nextLvInfo.name}</strong>!`;
+          } else if (S.practiceLevel > 1 && accuracyPct < 50) {
+            const prevLvInfo = PracticeLevel.getLevelInfo(S.practiceLevel - 1);
+            msg = `⚠️ Ván này đạt <strong>${accuracyPct}%</strong> — cẩn thận! Đạt < 50% ván tiếp nữa sẽ về cấp ${prevLvInfo.name}.`;
+          } else {
+            msg = `Ván này đạt <strong>${accuracyPct}%</strong> — cần ≥ 80% trong 2 ván liên tiếp để lên cấp ${nextLvInfo.emoji} ${nextLvInfo.name}.`;
+          }
+        } else {
+          if (accuracyPct < 50) {
+            const prevLvInfo = PracticeLevel.getLevelInfo(S.practiceLevel - 1);
+            msg = `⚠️ Đạt <strong>${accuracyPct}%</strong> — cẩn thận! Đạt < 50% ván tiếp nữa sẽ về cấp ${prevLvInfo.name}.`;
+          } else {
+            msg = `Đạt <strong>${accuracyPct}%</strong> — duy trì phong độ nhé!`;
+          }
+        }
+        levelEl.innerHTML = `<div class="level-info-banner">${currentLv.emoji} Cấp <strong>${currentLv.name}</strong> — ${msg}</div>`;
       }
     } else if (levelEl) {
       levelEl.innerHTML = '';
