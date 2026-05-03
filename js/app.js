@@ -1359,6 +1359,16 @@ const CloudBank = {
     if (error) throw error;
   },
 
+  async deleteAll() {
+    if (!LeaderboardSync.enabled || !window.supabase) return;
+    LeaderboardSync.init();
+    const { error } = await LeaderboardSync.client
+      .from('questions')
+      .delete()
+      .neq('id', 0);
+    if (error) throw error;
+  },
+
   mapFromDB(data) {
     return data.map(q => ({
       ...q,
@@ -1505,13 +1515,21 @@ const Profile = {
     if (s) s.textContent = `Ngân hàng: ${count} câu tùy chỉnh`;
   },
 
-  clearBank() {
+  async clearBank() {
     if (!confirm('Xóa toàn bộ ngân hàng đề tùy chỉnh? Sẽ về đề mặc định.')) return;
+    try {
+      await CloudBank.deleteAll();
+    } catch (e) {
+      console.error('Xóa database thất bại:', e);
+      toast('Xóa database thất bại!', 'warn');
+      return;
+    }
     QuestionManager.clear();
     window._bankQCount = null;
     const b = document.getElementById('bank-mode-badge');
     const s = document.getElementById('wf-bank-status');
     if (b) b.innerHTML = '📁';
+    if (s) s.textContent = '';
     document.getElementById('profile-q-count').value = 7;
     this.renderBank(); this.renderStats();
     toast('Đã xóa ngân hàng tùy chỉnh', '');
