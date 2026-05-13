@@ -753,7 +753,7 @@ const Briefing = {
       this._resolve = resolve;
       const overlay = document.getElementById('briefing-overlay');
       const pad = String(idx + 1).padStart(3, '0');
-      document.getElementById('briefing-case-num').textContent = `VỤ ÁN ÁN #${pad}`;
+      document.getElementById('briefing-case-num').textContent = `VỤ ÁN #${pad}`;
       document.getElementById('briefing-title').textContent = q.topic;
       const crewEl = document.getElementById('briefing-crew-emoji');
       crewEl.textContent = CREW_EMOJIS[idx % CREW_EMOJIS.length];
@@ -792,7 +792,7 @@ function renderQ(idx) {
   const pad = String(idx + 1).padStart(3, '0');
   document.getElementById('hdr-q-chip').textContent = `VỤ ÁN ${idx + 1}/${S.activeQuestions.length}`;
   document.getElementById('progress-fill').style.width = `${(idx / S.activeQuestions.length) * 100}%`;
-  document.getElementById('paper-title').textContent = `VỤ ÁN ÁN #${pad}`;
+  document.getElementById('paper-title').textContent = `VỤ ÁN #${pad}`;
   document.getElementById('paper-qnum').textContent = `Điều tra: ${q.topic}`;
   updateQScore();
   const mainProblem = document.getElementById('q-text-main');
@@ -1111,7 +1111,7 @@ const Game = {
       const nextLbl = S.qIdx + 1 >= S.activeQuestions.length ? '🏁 Xem kết quả →' : 'Vụ án tiếp theo →';
       const bonusMsg = bonus ? `<br><strong style="color:var(--yellow)">⭐ PERFECT! +${bonus} bonus điểm!</strong>` : '';
       const comboMsg = S.comboMult > 1 ? `<br><em style="color:var(--yellow)">🔥 COMBO ×${S.comboMult} đang hoạt động!</em>` : '';
-      const praise = S.cAttempt === 1 ? '✅ VỤ ÁN ÁN PHÁ GIẢI! GGWP!' : '✅ Đúng rồi! Tiếp tục phát huy!';
+      const praise = S.cAttempt === 1 ? '✅ VỤ ÁN PHÁ GIẢI! GGWP!' : '✅ Đúng rồi! Tiếp tục phát huy!';
       showFB('feedback-correction',
         `<span class="fc-icon">✅</span>` +
         `<div class="fc-body"><strong>${praise}</strong>${bonusMsg}${comboMsg}` +
