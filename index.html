@@ -603,6 +603,7 @@
               📁 Upload file JSON
             </label>
             <button class="btn-paste" onclick="Profile.togglePaste()">📋 Dán JSON</button>
+            <button class="btn-upload" onclick="Profile.addNewQuestion()" style="background: var(--yellow-bg); color: var(--yellow); border-color: rgba(245,197,24,0.3);">➕ Thêm câu hỏi</button>
             <button class="btn-sync" onclick="Profile.syncCloud()" id="btn-sync-bank">☁️ Đồng bộ Cloud</button>
             <button class="btn-clear-bank" onclick="Profile.clearBank()" id="btn-clear-bank" style="display:none">🗑 Xóa hết</button>
           </div>
@@ -619,6 +620,21 @@
             </div>
             <div id="paste-validation" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;border-left:3px solid"></div>
           </div>
+
+          <!-- ADD QUESTION MODAL/PANEL -->
+          <div class="paste-panel" id="add-question-panel">
+            <div style="font-size:14px;font-weight:800;color:var(--white);margin-bottom:12px">Thêm 1 câu hỏi mới (JSON)</div>
+            <div style="font-size:12px;font-weight:700;color:var(--white-dim);margin-bottom:8px">Dán nội dung 1 Câu hỏi JSON vào đây:</div>
+             <textarea class="paste-area" id="add-question-area" style="min-height: 150px"
+              placeholder='{&#10;  "topic": "Tên chủ đề",&#10;  "difficulty": "easy",&#10;  "problem": "$x + 2 = 5$",&#10;  "steps": ["..." , "..."],&#10;  "errTokens": [2],&#10;  "primaryErr": "Sai dấu",&#10;  "correction": "$x = 3$"&#10;}'></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn-upload" onclick="Profile.submitNewQuestion()"
+                style="background:var(--yellow-bg);border-color:rgba(245,197,24,.3);color:var(--yellow)">✓ Thêm câu hỏi này</button>
+              <button class="btn-ghost" onclick="document.getElementById('add-question-panel').classList.remove('show')">Hủy</button>
+            </div>
+            <div id="add-validation" style="margin-top:8px;display:none;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;border-left:3px solid"></div>
+          </div>
+
           <div id="bank-list-wrap">
             <div class="bank-empty" id="bank-empty-state">
               <span class="be-icon">📂</span>

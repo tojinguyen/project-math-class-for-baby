@@ -1428,6 +1428,16 @@ const CloudBank = {
     if (error) throw error;
   },
 
+  async deleteById(id) {
+    if (!LeaderboardSync.enabled || !window.supabase) throw new Error('Supabase chưa được kết nối.');
+    LeaderboardSync.init();
+    const { error } = await LeaderboardSync.client
+      .from('questions')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
+
   async deleteAll() {
     if (!LeaderboardSync.enabled || !window.supabase) throw new Error('Supabase chưa được kết nối.');
     LeaderboardSync.init();
@@ -1491,6 +1501,7 @@ const Profile = {
         <div class="bq-num">${i + 1}</div>
         <div class="bq-topic">${q.topic || '—'}</div>
         <div class="bq-diff ${q.difficulty === 'easy' ? 'cb-easy' : q.difficulty === 'hard' ? 'cb-hard' : 'cb-medium'}">${q.diffLabel || q.difficulty || '—'}</div>
+        <button class="btn-ghost" style="padding:4px 8px;margin-left:auto;color:var(--red);" onclick="event.stopPropagation(); Profile.deleteQuestion(${i})">🗑 Xóa</button>
         <span class="bq-chevron">▶</span>
       </div>
       <div class="bq-detail" id="bqd-${i}">
@@ -1528,6 +1539,95 @@ const Profile = {
     const r = new FileReader();
     r.onload = async ev => await this.applyJSON(ev.target.result, f.name);
     r.readAsText(f);
+  },
+
+  addNewQuestion() {
+    const p = document.getElementById('add-question-panel');
+    p.classList.add('show');
+    const template = {
+      id: Date.now(),
+      topic: "Tên chủ đề",
+      difficulty: "easy",
+      problem: "Nội dung đề bài (Toán bọc trong dấu $)",
+      steps: [
+        "Bước 1",
+        "Bước 2 lỗi"
+      ],
+      errTokens: [2],
+      primaryErr: "Nguyên nhân lỗi",
+      correction: "Bước 2 đúng"
+    };
+    document.getElementById('add-question-area').value = JSON.stringify(template, null, 2);
+    document.getElementById('add-validation').style.display = 'none';
+  },
+
+  async submitNewQuestion() {
+    const vEl = document.getElementById('add-validation');
+    vEl.style.display = 'none';
+    try {
+      const str = document.getElementById('add-question-area').value;
+      const singleQ = JSON.parse(str.trim());
+      
+      const req = ['id', 'topic', 'problem', 'steps', 'errTokens', 'primaryErr', 'correction'];
+      const miss = req.filter(k => !singleQ.hasOwnProperty(k));
+      if (miss.length) throw new Error('Thiếu trường: ' + miss.join(', '));
+
+      let currentBank = window._bankQuestions || [];
+      // Đảm bảo không trùng ID
+      if (currentBank.find(q => q.id === singleQ.id)) {
+        singleQ.id = Date.now();
+      }
+      currentBank.push(singleQ);
+      await QuestionManager.save(currentBank);
+      
+      window._bankQCount = Math.min(parseInt(document.getElementById('profile-q-count').value) || 7, currentBank.length);
+      
+      vEl.style.display = 'block';
+      vEl.style.background = 'rgba(46,213,115,.08)'; vEl.style.borderLeftColor = 'var(--green)';
+      vEl.style.color = 'var(--green)';
+      vEl.textContent = `✓ Đã thêm 1 câu hỏi mới!`;
+      
+      this.updateWelcomeBadge(currentBank.length);
+      this.renderBank(); this.renderStats();
+      
+      setTimeout(() => {
+        document.getElementById('add-question-panel').classList.remove('show');
+      }, 1000);
+      toast('✓ Thêm câu hỏi thành công!', 'ok');
+    } catch (err) {
+      vEl.style.display = 'block';
+      vEl.style.background = 'rgba(255,71,87,.08)'; vEl.style.borderLeftColor = 'var(--red)';
+      vEl.style.color = 'var(--red)';
+      vEl.textContent = '✗ Lỗi: ' + err.message;
+    }
+  },
+
+  async deleteQuestion(index) {
+    if (!confirm('Bạn có chắc muốn xóa câu hỏi này khỏi ngân hàng đề?')) return;
+    try {
+      let currentBank = window._bankQuestions || [];
+      if (index >= 0 && index < currentBank.length) {
+        const removedId = currentBank[index].id;
+        currentBank.splice(index, 1);
+        
+        // Remove from db if Cloud sync is on
+        try {
+          await CloudBank.deleteById(removedId);
+        } catch (dbErr) {
+          console.warn("Could not delete from DB right away:", dbErr);
+        }
+
+        await QuestionManager.save(currentBank);
+        window._bankQCount = Math.min(parseInt(document.getElementById('profile-q-count').value) || 7, currentBank.length);
+        
+        this.updateWelcomeBadge(currentBank.length);
+        this.renderBank(); this.renderStats();
+        toast('🗑 Đã xóa câu hỏi!', 'ok');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Lỗi khi xóa câu hỏi', 'warn');
+    }
   },
 
   togglePaste() {
