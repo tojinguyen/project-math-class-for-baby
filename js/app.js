@@ -271,7 +271,8 @@ const GameAnalysis = {
     let subjectStats = {
       chuyenVe: { count: 0, fail: 0, label: '🔴 Sai quy tắc chuyển vế', color: '#e74c3c' },
       tinhToan: { count: 0, fail: 0, label: '🔴 Sai tính toán', color: '#e67e22' },
-      thuTu: { count: 0, fail: 0, label: '🔴 Sai thứ tự phép tính', color: '#9b59b6' }
+      thuTu: { count: 0, fail: 0, label: '🔴 Sai thứ tự phép tính', color: '#9b59b6' },
+      ngoac: { count: 0, fail: 0, label: '🔴 Sai quy tắc dấu ngoặc', color: '#3498db' }
     };
     games.forEach(g => {
       let qrs = g.qResults || [], an = g.analytics || {}, dAtt = an.dAttempts || [], cAtt = an.cAttempts || [],
@@ -797,13 +798,19 @@ function renderQ(idx) {
   const mainProblem = document.getElementById('q-text-main');
   mainProblem.innerHTML = q.problem;
   applyMathFormatting(mainProblem);
-  const hintEl = document.getElementById('hint-content');
-  hintEl.innerHTML = q.hint || 'Chú ý dấu khi chuyển vế.';
-  applyMathFormatting(hintEl);
   
-  const ruleEl = document.getElementById('rule-content');
-  ruleEl.innerHTML = q.rule || 'Mỗi hạng tử chuyển vế phải đổi dấu!';
-  applyMathFormatting(ruleEl);
+  const qTypeMap = {
+    chuyenVe: "Quy tắc chuyển vế",
+    thuTu: "Thứ tự thực hiện phép tính",
+    tinhToan: "Sai tính toán",
+    dauNgoac: "Quy tắc dấu ngoặc",
+    ngoac: "Quy tắc dấu ngoặc"
+  };
+  const typeStr = qTypeMap[q.errorType] || "";
+  const qtypeEl = document.getElementById('qtype-content');
+  if (qtypeEl) {
+    qtypeEl.textContent = typeStr;
+  }
 
   // Case badge difficulty
   const badge = document.getElementById('case-diff-badge');

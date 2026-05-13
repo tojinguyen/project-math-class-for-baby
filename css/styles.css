@@ -1971,22 +1971,20 @@ body::before {
 
 .rule-box {
   background: var(--yellow-bg);
-  border: 1.5px solid rgba(255, 211, 42, .2);
-  border-radius: 6px;
-  padding: 10px 12px
-}
-
-.rule-text {
-  font-size: 18px;
-  font-weight: 700;
-  color: rgba(255, 211, 42, .9);
-  line-height: 1.7
-}
-
-.rule-text strong {
-  color: var(--yellow)
-}
-
+    border: 1.5px solid rgba(180, 83, 9, 0.2);
+    border-radius: 6px;
+    padding: 10px 12px
+  }
+  
+  .rule-text {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--yellow);
+    line-height: 1.7
+  }
+  
+  .rule-text strong {
+    color: var(--cyan);
 /* ── FLOATING POPUPS ── */
 .float-popup {
   position: fixed;
@@ -5646,4 +5644,4 @@ body::before {
 /* Ensure math text stands out slightly */
 .math-sup, .math-frac-top, .math-frac-bottom {
   font-variant-numeric: tabular-nums;
-}
+}
