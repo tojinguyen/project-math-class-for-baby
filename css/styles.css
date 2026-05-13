@@ -1,4 +1,4 @@
-/* Nút bắt đầu vụ án (disabled) */
+﻿/* Nút bắt đầu vụ án (disabled) */
 .btn-confirm[disabled],
 button[disabled].btn-confirm {
   background: repeating-linear-gradient(135deg, #ececec 0 12px, #f4efe6 12px 24px);
@@ -1985,7 +1985,9 @@ body::before {
   
   .rule-text strong {
     color: var(--cyan);
-/* ── FLOATING POPUPS ── */
+  }
+  
+  /* ── FLOATING POPUPS ── */
 .float-popup {
   position: fixed;
   left: 50%;
@@ -5645,3 +5647,5 @@ body::before {
 .math-sup, .math-frac-top, .math-frac-bottom {
   font-variant-numeric: tabular-nums;
 }
+
+
