@@ -6,11 +6,11 @@
 
 /* ══ BRIEFING TEXTS ══ */
 const BRIEFS = [
-  "🚨 BRIEFING MẬT! Có kẻ IMPOSTOR đã làm sai dấu trong bài giải. Nhiệm vụ: tìm ra hạng tử bị sai dấu khi chuyển vế. Nhớ: +a → −a khi sang vế khác!",
-  "🔍 ĐIỀU TRA! Ai đó đã cố tình không đổi dấu khi chuyển vế. Nhìn kỹ từng bước — dấu cộng/trừ có bị giữ nguyên không? Tìm ra và bắt ngay!",
-  "⚠️ CAUTION! Vụ án này phức tạp hơn — có thể bị đánh lạc hướng. Kiểm tra từng hạng tử được chuyển vế. Mỗi hạng tử phải đổi dấu riêng!",
-  "🔴 RED FLAG! Impostor lần này giấu lỗi trong bước bỏ ngoặc. Nhớ: a(b−c) = a·b − a·c. Phải nhân với MỌI hạng tử trong ngoặc!",
-  "💀 FINAL TASK! Impostor khó nhất đang ẩn náu trong dấu trừ trước ngoặc. Quy tắc: −(a−b) = −a+b. Đây là vụ cuối — không được sai!",
+  "Loại trừ những gì đúng đắn, cái sai còn sót lại chính là chân tướng của Impostor! 🕵️‍♂️🔍",
+  "Nhân danh danh dự của thám tử, tôi sẽ check-var và lôi kẻ làm sai ra ánh sáng!  🔎",
+  "Mắt thần đã bật, mọi lỗi sai dù nhỏ nhất cũng không thể thoát khỏi tay thám tử!",
+  "Sự thật chỉ có một: Impostor chính là kẻ đã để lại dấu vết sai phạm ở đây!  🕵️‍♂️⌚",
+  "Màn kịch của kẻ làm sai đã hạ màn, sự thật bắt đầu lộ diện sau bước check-var này!",
 ];
 const CREW_EMOJIS = ['🕵️', '🔍', '📁', '🗝️', '💼', '🔦', '📋', '🧩'];
 
