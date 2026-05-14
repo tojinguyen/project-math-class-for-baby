@@ -3,7 +3,9 @@
     "allow": [
       "Bash(node --check \"d:\\\\THAO_IU\\\\project-math-class-for-baby\\\\js\\\\app.js\")",
       "Bash(npx --version)",
-      "Read(//d/THAO_IU/project-math-class-for-baby\" 2>/dev/**)"
+      "Read(//d/THAO_IU/project-math-class-for-baby\" 2>/dev/**)",
+      "Bash(Get-Content \"d:\\\\THAO_IU\\\\project-math-class-for-baby\\\\questions_merged.json\")",
+      "Bash(Select-Object -Last 50)"
     ]
   }
 }

@@ -616,21 +616,38 @@ function showFB(id, html, type) {
 function hideFB(id) { document.getElementById(id).className = 'feedback-card' }
 function fmt(s) { return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}` }
 function pct(a, b) { return b ? Math.round(a / b * 100) : 0 }
+function applyTokenModifiers(el, tk) {
+  if (tk.tp === 'op') el.classList.add('op');
+  if (tk.tp === 'eq') el.classList.add('eq');
+  if (tk.tp === 'plain') el.classList.add('plain');
+  const text = tk.tx.trim();
+  if (/^[([{]$/.test(text)) el.classList.add('tk-open');
+  if (/^[)\]}]$/.test(text)) el.classList.add('tk-close');
+  if (text.startsWith('^')) el.classList.add('tk-exp');
+  if (text.includes('/')) el.classList.add('tk-frac');
+}
 function formatMathText(text) {
   const escaped = String(text)
+    .replace(/×/g, '·')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
-  
-  // 1. Fractions: a/b -> math-frac
-  const withFractions = escaped.replace(
-    /([−-]?[A-Za-z0-9.()]+)\s*\/\s*([−-]?[A-Za-z0-9.()]+)/g,
+
+  // 1. (a/b)^n — phải xử lý trước fraction riêng lẻ để tránh </span>^n bị kẹt
+  const withFracPow = escaped.replace(
+    /\(([^()/]+)\/([^()/]+)\)\s*[\^＾]\s*([-−]?[A-Za-z0-9]+)/g,
+    '<span class="math-paren">(</span><span class="math-frac"><span class="math-frac-top">$1</span><span class="math-frac-bottom">$2</span></span><span class="math-paren">)</span><sup class="math-sup">$3</sup>'
+  );
+
+  // 2. Fractions: a/b -> math-frac
+  const withFractions = withFracPow.replace(
+    /([−-]?[A-Za-z0-9.]+)\s*\/\s*([−-]?[A-Za-z0-9.]+)/g,
     '<span class="math-frac"><span class="math-frac-top">$1</span><span class="math-frac-bottom">$2</span></span>'
   );
-  
-  // 2. Exponents: a^b -> math-sup (support standard and full-width carets)
+
+  // 3. Exponents: a^b -> math-sup — bỏ ) khỏi exponent group để không nuốt dấu ngoặc đóng
   return withFractions.replace(
-    /([A-Za-z0-9.()]+)\s*[\^＾]\s*([−-]?[A-Za-z0-9.()]+)/g,
+    /([A-Za-z0-9.)]*)\s*[\^＾]\s*([−-]?[A-Za-z0-9.]+)/g,
     '$1<sup class="math-sup">$2</sup>'
   );
 }
@@ -642,7 +659,7 @@ function applyMathFormatting(rootEl) {
   let node = walker.nextNode();
   while (node) {
     const txt = node.nodeValue || '';
-    if (/[\/^＾]/.test(txt) && txt.trim()) targets.push(node);
+    if (/[\/^＾×·]/.test(txt) && txt.trim()) targets.push(node);
     node = walker.nextNode();
   }
   targets.forEach(textNode => {
@@ -834,9 +851,7 @@ function renderSteps(q) {
     const tks = document.createElement('div'); tks.className = 'step-tokens';
     step.tokens.forEach(tk => {
       const el = document.createElement('span'); el.className = 'token'; el.id = `tk-${tk.id}`; el.innerHTML = formatMathText(tk.tx);
-      if (tk.tp === 'op') el.classList.add('op');
-      if (tk.tp === 'eq') el.classList.add('eq');
-      if (tk.tp === 'plain') el.classList.add('plain');
+      applyTokenModifiers(el, tk);
       el.addEventListener('click', () => onTokenClick(tk.id));
       tks.appendChild(el);
     });
@@ -2095,8 +2110,7 @@ const RoomHost = {
       step.tokens.forEach(tk => {
         const el = document.createElement('span');
         el.className = 'token'; el.id = `htk-${tk.id}`; el.innerHTML = formatMathText(tk.tx);
-        if (tk.tp === 'op') el.classList.add('op');
-        if (tk.tp === 'eq') el.classList.add('eq');
+        applyTokenModifiers(el, tk);
         tks.appendChild(el);
       });
       row.appendChild(lbl); row.appendChild(tks); blk.appendChild(row);
@@ -2444,9 +2458,7 @@ const RoomStudent = {
       step.tokens.forEach(tk => {
         const el = document.createElement('span');
         el.className = 'token'; el.id = `stk-${tk.id}`; el.innerHTML = formatMathText(tk.tx);
-        if (tk.tp === 'op') el.classList.add('op');
-        if (tk.tp === 'eq') el.classList.add('eq');
-        if (tk.tp === 'plain') el.classList.add('plain');
+        applyTokenModifiers(el, tk);
         el.addEventListener('click', () => this._clickToken(tk.id));
         tks.appendChild(el);
       });

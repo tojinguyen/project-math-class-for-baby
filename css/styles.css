@@ -1242,6 +1242,11 @@ body::before {
   min-height: 48px;
 }
 
+.token.tk-open { padding-right: 0 !important; margin-right: -4px !important; }
+.token.tk-close { padding-left: 0 !important; margin-left: -4px !important; margin-right: -2px !important; }
+.token.tk-frac { padding-left: 0 !important; padding-right: 0 !important; margin: 0 -2px !important; }
+.token.tk-exp { padding-left: 0 !important; margin-left: -10px !important; }
+
 .token.op {
   color: var(--red) !important;
   font-weight: 800;
