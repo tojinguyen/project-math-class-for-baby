@@ -4241,8 +4241,9 @@ body::before {
   padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px
+  gap: 20px;
 }
+
 
 /* Stats summary */
 .profile-stats {
@@ -4390,7 +4391,25 @@ body::before {
 .bank-q-list {
   display: flex;
   flex-direction: column;
-  gap: 6px
+  gap: 6px;
+}
+
+/* Danh sách câu hỏi scroll nội bộ — "Số câu mỗi ván" vẫn hiện bên dưới */
+#bank-list-wrap {
+  max-height: 420px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+#bank-list-wrap::-webkit-scrollbar {
+  width: 5px;
+}
+#bank-list-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+#bank-list-wrap::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
 
 .bq-row {

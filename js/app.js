@@ -276,7 +276,73 @@ const LeaderboardSync = {
   }
 };
 
+/* ══ GLOBAL SETTINGS (lưu vào Supabase) ══ */
+const GlobalSettings = {
+  CONFIG_ID: '_global_config',
+  CONFIG_NAME: '_global_config',
+  DEFAULT_Q_COUNT: 7,
+  _cache: null,
+
+  /** Đọc cài đặt toàn cục từ Supabase. Trả về object config. */
+  async load() {
+    try {
+      LeaderboardSync.init();
+      if (!LeaderboardSync.client) return this._defaults();
+      const { data } = await LeaderboardSync.client
+        .from('profiles')
+        .select('*')
+        .eq('id', this.CONFIG_ID)
+        .maybeSingle();
+      if (data) {
+        this._cache = data;
+        return data;
+      }
+    } catch (e) {
+      console.warn('[GlobalSettings] load failed:', e.message);
+    }
+    return this._defaults();
+  },
+
+  /** Lấy số câu mỗi ván. Đọc từ cache nếu có, ngược lại fetch từ Supabase. */
+  async getQCount() {
+    if (this._cache) return this._cache.xp || this.DEFAULT_Q_COUNT;
+    const cfg = await this.load();
+    return cfg.xp || this.DEFAULT_Q_COUNT;
+  },
+
+  /** Admin lưu số câu mỗi ván lên Supabase (dùng trường xp làm giá trị). */
+  async setQCount(count) {
+    count = Math.max(1, parseInt(count) || this.DEFAULT_Q_COUNT);
+    try {
+      LeaderboardSync.init();
+      if (!LeaderboardSync.client) { this._localSet(count); return count; }
+      const row = {
+        id: this.CONFIG_ID,
+        name: this.CONFIG_NAME,
+        xp: count,
+        role: 'config',
+        best_streak: 0, total_cases: 0, perfect_cases: 0,
+        last_active: new Date().toISOString(),
+      };
+      await LeaderboardSync.client.from('profiles').upsert(row);
+      this._cache = row;
+      console.log('[GlobalSettings] Đã lưu số câu =', count);
+    } catch (e) {
+      console.warn('[GlobalSettings] setQCount failed:', e.message);
+      this._localSet(count);
+    }
+    return count;
+  },
+
+  _defaults() { return { xp: this.DEFAULT_Q_COUNT }; },
+  _localSet(count) {
+    if (!this._cache) this._cache = this._defaults();
+    this._cache.xp = count;
+  },
+};
+
 /* ══ AUTH SYSTEM ══ */
+
 
 const Auth = {
   SESSION_KEY: 'erase_auth_user',
@@ -1118,7 +1184,7 @@ function onTokenClick(tid) {
 
 /* ══ GAME ══ */
 const Game = {
-  startGame() {
+  async startGame() {
     // Đọc tên từ Auth session (uu tiên) hoặc input (fallback)
     const authUser = Auth.getCurrentUser();
     S.name = (authUser && authUser.name) || document.getElementById('player-name')?.value?.trim() || 'Thám Tử';
@@ -1132,7 +1198,8 @@ const Game = {
     S.practiceLevel = PracticeLevel.getLevel(S.name);
     const lvInfo = PracticeLevel.getLevelInfo(S.practiceLevel);
 
-    const count = window._bankQCount || (6 + Math.floor(Math.random() * 3));
+    // Đọc số câu từ GlobalSettings (Supabase) — ưu tiên override cục bộ nếu admin đang chỉnh
+    const count = window._bankQCount || await GlobalSettings.getQCount();
     S.activeQuestions = QuestionManager.getQuestions(count, { difficultyFilter: lvInfo.difficulty });
 
     SessionManager.saveGame();
@@ -1642,9 +1709,14 @@ const CloudBank = {
 ══════════════════════════════════════════════ */
 const Profile = {
   async init() {
+    // Load số câu toàn cục từ Supabase và cập nhật input
+    const savedQCount = await GlobalSettings.getQCount();
+    window._bankQCount = window._bankQCount || savedQCount;
+    const qCountEl = document.getElementById('profile-q-count');
+    if (qCountEl) qCountEl.value = window._bankQCount;
+
     await this.renderStats();
     this.renderBank();
-    this.renderHistory();
   },
 
   async renderStats() {
@@ -1842,7 +1914,7 @@ const Profile = {
     }
   },
 
-  updateQCount() {
+  async updateQCount() {
     const v = parseInt(document.getElementById('profile-q-count').value) || 5;
     window._bankQCount = v;
     const bank = window._bankQuestions;
@@ -1850,6 +1922,9 @@ const Profile = {
       bank ? `Ngân hàng tùy chỉnh: ${bank.length} câu (chơi ${Math.min(v, bank.length)}/ván)`
         : `Đề mặc định (chơi ${Math.min(v, 5)}/ván)`;
     this.updateWelcomeBadge(bank?.length || 5);
+    // Lưu lên Supabase để ảnh hưởng toàn bộ user
+    await GlobalSettings.setQCount(v);
+    toast(`✓ Đã cập nhật: ${v} câu/ván cho tất cả học sinh`, 'ok');
   },
 
   updateWelcomeBadge(count) {
@@ -2826,6 +2901,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── Seed Admin accounts (chạy ngầm) ──
   seedAdmins();
+
+  // ── Load global settings (chạy ngầm để cache sẵn) ──
+  GlobalSettings.load();
 
   // ── Session Restore (cho Thách Đấu) ──
   const session = SessionManager.get();
