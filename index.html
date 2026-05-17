@@ -349,7 +349,7 @@
             </td>
           </tr>`;
       } else {
-        arr.forEach((p, i) => {
+        arr.filter(p => p.name !== '_global_config').forEach((p, i) => {
           let crown = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1;
           let rankColor = i === 0 ? '#d4af37' : i === 1 ? '#9e9e9e' : i === 2 ? '#a0522d' : 'var(--white-ghost)';
           let rowBg = i === 0 ? 'rgba(245,197,24,0.1)' : 
