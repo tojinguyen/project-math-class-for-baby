@@ -24,6 +24,10 @@
     rel="stylesheet">
   <!-- Styles -->
   <link rel="stylesheet" href="css/styles.css?v=2">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.png">
   <!-- Dependencies -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -142,7 +146,7 @@
     <div class="welcome-footer">
       <span class="wf-link" onclick="showLeaderboard()">🏅 Leader Board</span>
       <span class="wf-link admin-only-link" id="btn-admin-dashboard"
-        onclick="window.open('admin.html','_blank')"
+        onclick="window.location.href='admin.html'"
         style="display:none;">
         📊 Theo dõi học sinh
       </span>
