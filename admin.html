@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E·RASE — Theo Dõi Học Sinh | Admin Dashboard</title>
+  <meta name="description" content="Màn hình quản lý và theo dõi tiến bộ học sinh dành cho Admin.">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/admin.css">
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <!-- ══ HEADER ══ -->
+  <header class="adm-header">
+    <div style="display:flex;align-items:center;gap:16px">
+      <a href="index.html" class="adm-logo" title="Quay về trang chính" style="text-decoration:none">E·RASE</a>
+      <div>
+        <div class="adm-title">📊 Theo Dõi Học Sinh</div>
+        <div class="adm-subtitle">ADMIN DASHBOARD · Chỉ Admin mới xem được</div>
+      </div>
+    </div>
+    <div class="adm-header-right">
+      <span class="adm-last-updated" id="adm-last-updated">Đang tải...</span>
+      <span id="adm-admin-name" style="font-size:13px;font-weight:800;color:var(--yellow)">👑 Admin</span>
+      <a href="index.html" class="btn-back-main" style="font-size:13px;padding:8px 16px">← Quay lại</a>
+    </div>
+  </header>
+
+  <!-- ══ MAIN BODY ══ -->
+  <main class="adm-body">
+
+    <!-- Summary Cards -->
+    <div class="adm-summary-row">
+      <div class="adm-stat-card sc-yellow">
+        <div class="sc-label">Tổng Học Sinh</div>
+        <div class="sc-value"><span id="sc-total">—</span></div>
+        <div class="sc-sub">Đã có tài khoản Student</div>
+      </div>
+      <div class="adm-stat-card sc-red">
+        <div class="sc-label">Cần Chú Ý ⚠️</div>
+        <div class="sc-value"><span id="sc-warning">—</span></div>
+        <div class="sc-sub">Lỗi cả 2 GĐ hoặc thụt lùi</div>
+      </div>
+      <div class="adm-stat-card sc-green">
+        <div class="sc-label">Đang Tiến Bộ ↑</div>
+        <div class="sc-value"><span id="sc-up">—</span></div>
+        <div class="sc-sub">So sánh 3 ván gần nhất</div>
+      </div>
+      <div class="adm-stat-card sc-blue">
+        <div class="sc-label">Đang Thụt Lùi ↓</div>
+        <div class="sc-value"><span id="sc-down">—</span></div>
+        <div class="sc-sub">Cần hỗ trợ thêm</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="adm-toolbar">
+      <div class="adm-search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="adm-search" placeholder="Tìm theo tên học sinh...">
+      </div>
+      <div class="adm-filter-group">
+        <button class="adm-filter-btn active"
+          onclick="AdminDashboard.setFilter('all', this)">
+          📋 Tất cả
+        </button>
+        <button class="adm-filter-btn"
+          onclick="AdminDashboard.setFilter('warning', this)">
+          ⚠️ Cần chú ý
+        </button>
+        <button class="adm-filter-btn"
+          onclick="AdminDashboard.setFilter('progress_down', this)">
+          ↓ Thụt lùi
+        </button>
+        <button class="btn-refresh" id="btn-refresh">
+          🔄 Làm mới
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="adm-table-wrap">
+
+      <!-- Loading overlay -->
+      <div id="adm-loading" class="adm-loading" style="display:flex">
+        <div class="adm-loading-spin">🕵️</div>
+        <div class="adm-loading-text">ĐANG TẢI DỮ LIỆU...</div>
+      </div>
+
+      <table class="adm-table" id="adm-table">
+        <thead>
+          <tr>
+            <th class="col-name sorted" data-col="name"
+              onclick="AdminDashboard.sort('name')">
+              👤 Tên HS <span class="sort-icon">▲</span>
+            </th>
+            <th class="col-games" data-col="games"
+              onclick="AdminDashboard.sort('games')"
+              data-tooltip="Tổng số ván Solo đã chơi">
+              🎮 Ván <span class="sort-icon">▲</span>
+            </th>
+            <th class="col-errors"
+              data-tooltip="Loại lỗi hay gặp ở từng giai đoạn">
+              🔎 Lỗi hay gặp
+            </th>
+            <th class="col-speed" data-col="speed"
+              onclick="AdminDashboard.sort('speed')"
+              data-tooltip="Thời gian trung bình để hoàn thành mỗi câu (GĐ1 + GĐ2)">
+              ⚡ Tốc độ TB <span class="sort-icon">▲</span>
+            </th>
+            <th class="col-progress" data-col="progress"
+              onclick="AdminDashboard.sort('progress')"
+              data-tooltip="So sánh điểm 3 ván gần nhất với 3 ván trước">
+              📈 Tiến bộ <span class="sort-icon">▲</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="adm-tbody">
+          <!-- Render bởi admin.js -->
+        </tbody>
+      </table>
+
+      <!-- Table footer -->
+      <div class="adm-table-footer">
+        <span id="adm-footer-count">—</span>
+        <span style="opacity:.6">⚠️ = lỗi cả 2 giai đoạn hoặc đang thụt lùi</span>
+      </div>
+
+    </div><!-- /adm-table-wrap -->
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="js/admin.js"></script>
+
+</body>
+</html>

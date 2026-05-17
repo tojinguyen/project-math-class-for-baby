@@ -141,6 +141,11 @@
 
     <div class="welcome-footer">
       <span class="wf-link" onclick="showLeaderboard()">🏅 Leader Board</span>
+      <span class="wf-link admin-only-link" id="btn-admin-dashboard"
+        onclick="window.open('admin.html','_blank')"
+        style="display:none;">
+        📊 Theo dõi học sinh
+      </span>
     </div>
 
     <button class="profile-fab" id="bank-mode-badge" onclick="showScreen('screen-profile');Profile.init()"

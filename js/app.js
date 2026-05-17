@@ -528,6 +528,9 @@ const AuthUI = {
     }
     // Chỉ Admin mới thấy nút vào ngân hàng đề
     if (bankBtn) bankBtn.style.display = profile.role === 'admin' ? '' : 'none';
+    // Chỉ Admin mới thấy nút theo dõi học sinh
+    const adminDashBtn = document.getElementById('btn-admin-dashboard');
+    if (adminDashBtn) adminDashBtn.style.display = profile.role === 'admin' ? '' : 'none';
   },
 
   /** Gọi khi welcome screen load lại (sau game, etc.) */
@@ -1534,7 +1537,71 @@ const Game = {
 
     await XP.saveProfile(S.name, earnedXp, S.bestStreak, perfectCasesAdd);
     XP.renderWelcome(); // Update UI in welcome screen
+
+    // ── Ghi analytics ván chơi vào game_logs (chỉ Solo mode) ──
+    try {
+      await GameLogger.saveGameLog();
+    } catch (e) {
+      console.warn('[GameLogger] Không thể lưu game log:', e.message);
+    }
   }
+};
+
+/* ══ GAME LOGGER ══ */
+/**
+ * Ghi dữ liệu từng ván chơi Solo lên bảng game_logs (Supabase).
+ * Dùng để admin theo dõi tiến bộ học sinh.
+ */
+const GameLogger = {
+  async saveGameLog() {
+    if (!window.supabase || !LeaderboardSync.client) {
+      LeaderboardSync.init();
+      if (!LeaderboardSync.client) return;
+    }
+
+    const authUser = Auth.getCurrentUser();
+    const playerId = authUser ? authUser.id : ('anon-' + LeaderboardSync.getDeviceId());
+    const playerName = S.name;
+
+    // Trích errorType từ activeQuestions để biết HS hay sai loại lỗi nào
+    const errorTypes = S.activeQuestions.map(q => q.errorType || null);
+
+    const row = {
+      player_id:      playerId,
+      player_name:    playerName,
+      played_at:      new Date().toISOString(),
+      total_questions: S.activeQuestions.length,
+      score:          S.score,
+      detect_results:  JSON.stringify(S.analytics.dAttempts),
+      correct_results: JSON.stringify(S.analytics.cAttempts),
+      detect_times:    JSON.stringify(S.analytics.dTimes),
+      correct_times:   JSON.stringify(S.analytics.cTimes),
+      wrong_clicks:    JSON.stringify(S.analytics.wrongClicks),
+      error_types:     JSON.stringify(errorTypes),
+    };
+
+    const { error } = await LeaderboardSync.client.from('game_logs').insert(row);
+    if (error) throw new Error(error.message);
+    console.log('[GameLogger] Đã lưu game log cho:', playerName);
+  },
+
+  /** Fetch tất cả game_logs (dùng cho Admin Dashboard). */
+  async fetchAll() {
+    if (!window.supabase) return [];
+    LeaderboardSync.init();
+    if (!LeaderboardSync.client) return [];
+
+    const { data, error } = await LeaderboardSync.client
+      .from('game_logs')
+      .select('*')
+      .order('played_at', { ascending: true });
+
+    if (error) {
+      console.error('[GameLogger] fetchAll error:', error.message);
+      return [];
+    }
+    return data || [];
+  },
 };
 
 /* ══ CONFETTI ══ */
