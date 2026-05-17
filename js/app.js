@@ -276,6 +276,203 @@ const LeaderboardSync = {
   }
 };
 
+/* ══ AUTH SYSTEM ══ */
+
+const Auth = {
+  SESSION_KEY: 'erase_auth_user',
+
+  /** Lấy user đang đăng nhập từ sessionStorage. Trả về null nếu chưa đăng nhập. */
+  getCurrentUser() {
+    try {
+      const data = sessionStorage.getItem(this.SESSION_KEY);
+      return data ? JSON.parse(data) : null;
+    } catch (e) { return null; }
+  },
+
+  /** Lưu session sau khi đăng nhập thành công. */
+  saveSession(profile) {
+    // Không lưu password ra session
+    const { password, ...safe } = profile;
+    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(safe));
+  },
+
+  /** Đăng xuất — xóa session và reload trang. */
+  logout() {
+    sessionStorage.removeItem(this.SESSION_KEY);
+    SessionManager.clear();
+    SessionManager.clearGame();
+    location.reload();
+  },
+
+  /** Kiểm tra user hiện tại có phải Admin không. */
+  isAdmin() {
+    const user = this.getCurrentUser();
+    return user && user.role === 'admin';
+  },
+
+  /**
+   * Đăng nhập: xác thực tên + mật khẩu với Supabase.
+   * Trả về profile nếu thành công, throw Error nếu thất bại.
+   */
+  async login(name, password) {
+    if (!name || !password) throw new Error('Vui lòng nhập đầy đủ tên và mật khẩu!');
+    name = name.trim();
+    LeaderboardSync.init();
+    const profile = await LeaderboardSync.getProfile(name);
+    if (!profile) throw new Error('Tên tài khoản không tồn tại! Hãy đăng ký trước.');
+    if (!profile.password) throw new Error('Tài khoản này chưa có mật khẩu. Liên hệ Admin.');
+    if (profile.password !== password) throw new Error('Mật khẩu không đúng! Thử lại.');
+    this.saveSession(profile);
+    return profile;
+  },
+
+  /**
+   * Đăng ký tài khoản mới với role 'student'.
+   * Throw Error nếu tên đã tồn tại hoặc mật khẩu không hợp lệ.
+   */
+  async register(name, password, confirmPassword) {
+    name = (name || '').trim();
+    if (!name) throw new Error('Vui lòng nhập tên hiển thị!');
+    if (!password) throw new Error('Vui lòng nhập mật khẩu!');
+    if (password.length < 4) throw new Error('Mật khẩu phải có ít nhất 4 ký tự!');
+    if (password !== confirmPassword) throw new Error('Mật khẩu xác nhận không khớp!');
+    const exists = await LeaderboardSync.getProfile(name);
+    if (exists) throw new Error('Tên "' + name + '" đã được sử dụng! Chọn tên khác.');
+    const newProfile = {
+      id: 'user-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+      name: name,
+      xp: 0,
+      best_streak: 0,
+      total_cases: 0,
+      perfect_cases: 0,
+      role: 'student',
+      password: password,
+    };
+    await LeaderboardSync.uploadProfile(newProfile);
+    this.saveSession(newProfile);
+    return newProfile;
+  }
+};
+
+/**
+ * Tạo 2 tài khoản Admin mặc định (chạy 1 lần khi init).
+ * Nếu admin đã tồn tại thì bỏ qua.
+ */
+async function seedAdmins() {
+  try {
+    LeaderboardSync.init();
+    if (!window.supabase || !LeaderboardSync.client) return;
+    const admins = [
+      { id: 'admin-001', name: 'Admin1', xp: 0, best_streak: 0, total_cases: 0, perfect_cases: 0, role: 'admin', password: 'admin123' },
+      { id: 'admin-002', name: 'Admin2', xp: 0, best_streak: 0, total_cases: 0, perfect_cases: 0, role: 'admin', password: 'admin123' },
+    ];
+    for (const admin of admins) {
+      const existing = await LeaderboardSync.getProfile(admin.name);
+      if (!existing) {
+        await LeaderboardSync.uploadProfile(admin);
+        console.log(`[Auth] Đã tạo tài khoản ${admin.name}`);
+      }
+    }
+  } catch (e) {
+    console.warn('[Auth] seedAdmins failed (có thể cột chưa tồn tại):', e.message);
+  }
+}
+
+/** Controller UI cho màn hình Login / Đăng ký */
+const AuthUI = {
+  _currentTab: 'signin',
+
+  switchTab(tab) {
+    this._currentTab = tab;
+    document.querySelectorAll('.ltab-auth').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('ltab-' + tab).classList.add('active');
+    document.getElementById('apanel-' + tab).classList.add('active');
+    this.clearError();
+  },
+
+  clearError() {
+    const e1 = document.getElementById('auth-error-signin');
+    const e2 = document.getElementById('auth-error-signup');
+    if (e1) e1.textContent = '';
+    if (e2) e2.textContent = '';
+  },
+
+  _setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.textContent = loading
+      ? '⏳ Đang xử lý...'
+      : (btnId === 'btn-login' ? '🔐 Đăng nhập' : '📝 Đăng ký tài khoản');
+  },
+
+  async handleLogin() {
+    const name = (document.getElementById('login-name')?.value || '').trim();
+    const password = document.getElementById('login-password')?.value || '';
+    const errEl = document.getElementById('auth-error-signin');
+    this._setLoading('btn-login', true);
+    try {
+      const profile = await Auth.login(name, password);
+      toast(`🕵️ Chào mừng, ${profile.name}!`, 'correct');
+      this._onLoginSuccess(profile);
+    } catch (e) {
+      if (errEl) errEl.textContent = '❌ ' + (e.message || 'Đăng nhập thất bại!');
+    } finally {
+      this._setLoading('btn-login', false);
+    }
+  },
+
+  async handleRegister() {
+    const name = (document.getElementById('reg-name')?.value || '').trim();
+    const password = document.getElementById('reg-password')?.value || '';
+    const confirm = document.getElementById('reg-confirm')?.value || '';
+    const errEl = document.getElementById('auth-error-signup');
+    this._setLoading('btn-register', true);
+    try {
+      const profile = await Auth.register(name, password, confirm);
+      toast(`🎉 Đăng ký thành công! Chào mừng thám tử ${profile.name}!`, 'correct');
+      this._onLoginSuccess(profile);
+    } catch (e) {
+      if (errEl) errEl.textContent = '❌ ' + (e.message || 'Đăng ký thất bại!');
+    } finally {
+      this._setLoading('btn-register', false);
+    }
+  },
+
+  _onLoginSuccess(profile) {
+    // Set player-name input (ẩn) để tương thích với code game cũ
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) nameInput.value = profile.name;
+    // Chuyển sang màn hình Welcome
+    this._renderWelcomeUser(profile);
+    showScreen('screen-welcome');
+    XP.renderWelcome();
+  },
+
+  _renderWelcomeUser(profile) {
+    const nameEl = document.getElementById('wub-name');
+    const roleEl = document.getElementById('wub-role');
+    const bankBtn = document.getElementById('bank-mode-badge');
+    if (nameEl) nameEl.textContent = '🕵️ ' + profile.name;
+    if (roleEl) {
+      if (profile.role === 'admin') {
+        roleEl.innerHTML = '<span class="role-badge role-admin">👑 ADMIN</span>';
+      } else {
+        roleEl.innerHTML = '<span class="role-badge role-student">🎓 Học sinh</span>';
+      }
+    }
+    // Chỉ Admin mới thấy nút vào ngân hàng đề
+    if (bankBtn) bankBtn.style.display = profile.role === 'admin' ? '' : 'none';
+  },
+
+  /** Gọi khi welcome screen load lại (sau game, etc.) */
+  refreshWelcomeUser() {
+    const user = Auth.getCurrentUser();
+    if (user) this._renderWelcomeUser(user);
+  }
+};
+
 /* ══ GAME ANALYSIS ENGINE ══ */
 const GameAnalysis = {
   analyze(games) {
@@ -421,69 +618,25 @@ const XP = {
 
   _nameTimeout: null,
   async renderWelcome(forceNameFromInput = false) {
-    const nameInput = document.getElementById('player-name');
-    if (!nameInput) return;
-
-    const statusEl = document.getElementById('name-check-status');
-    const regBtn = document.getElementById('btn-register-name');
-    const errorEl = document.getElementById('name-error-msg');
-
     if (this._nameTimeout) clearTimeout(this._nameTimeout);
 
     this._nameTimeout = setTimeout(async () => {
+      // Lấy tên từ Auth session (sau khi đăng nhập)
+      const authUser = Auth.getCurrentUser();
+      let name = authUser ? authUser.name : '';
+
+      // Nếu không có Auth session, thử lấy từ hidden input (fallback)
+      if (!name) {
+        const nameInput = document.getElementById('player-name');
+        name = nameInput ? nameInput.value.trim() : '';
+      }
+
       let profile = null;
-      let name = nameInput.value.trim();
-      const deviceId = LeaderboardSync.getDeviceId();
-
-      // Nếu lần đầu load (không phải do gõ phím), thử tìm theo Device ID
-      if (!forceNameFromInput && !name) {
-        profile = await LeaderboardSync.getProfileById(deviceId);
-        if (profile) {
-          nameInput.value = profile.name;
-          name = profile.name;
-        }
-      } else if (name) {
+      if (name) {
         profile = await this.getProfile(name);
+        // Cập nhật cache từ DB (XP mới nhất)
+        if (profile) this._cache[name] = profile;
       }
-
-      const startBtns = document.querySelectorAll('.mode-card');
-      let isOwner = true;
-
-      if (profile) {
-        // Kiểm tra xem profile này có thuộc về máy này không
-        if (profile.id !== deviceId) {
-          isOwner = false;
-          if (statusEl) {
-            statusEl.style.display = 'block';
-            statusEl.style.color = 'var(--red)';
-            statusEl.textContent = '❌ Tên này đã có chủ trên máy khác!';
-          }
-          if (regBtn) regBtn.style.display = 'none';
-        } else {
-          if (statusEl) {
-            statusEl.style.display = 'block';
-            statusEl.style.color = 'var(--cyan)';
-            statusEl.textContent = '🕵️ Hồ sơ thám tử của bạn';
-          }
-          if (regBtn) regBtn.style.display = 'none';
-        }
-      } else {
-        if (statusEl) {
-          if (!name) {
-            statusEl.style.display = 'none';
-          } else {
-            statusEl.style.display = 'block';
-            statusEl.style.color = 'var(--yellow)';
-            statusEl.textContent = '❓ Tên này chưa được đăng ký';
-          }
-        }
-        if (regBtn) regBtn.style.display = name ? 'block' : 'none';
-      }
-
-      // Vô hiệu hóa nút chơi nếu không phải chủ sở hữu (chỉ làm mờ, vẫn cho click để hiện thông báo)
-      startBtns.forEach(btn => {
-        btn.style.opacity = isOwner ? '1' : '0.3';
-      });
 
       const xp = profile ? profile.xp : 0;
       const rank = this.getRank(xp);
@@ -515,12 +668,10 @@ const XP = {
         if (elNext) elNext.textContent = `Cần ${remain} XP nữa để lên cấp ${XP_RANKS[rank.level].name}`;
       }
 
-      if (errorEl) errorEl.style.display = 'none';
-
       // Show practice level badge
       const lvBadge = document.getElementById('wx-practice-level');
       if (lvBadge) {
-        if (name && isOwner) {
+        if (name) {
           const lv = PracticeLevel.getLevel(name);
           const lvInfo = PracticeLevel.getLevelInfo(lv);
           lvBadge.innerHTML = `Cấp tự luyện: ${lvInfo.emoji} <strong>${lvInfo.name}</strong>`;
@@ -530,10 +681,10 @@ const XP = {
           lvBadge.style.display = 'none';
         }
       }
-    }, name === this._currentName ? 0 : 500);
-
-    this._currentName = name;
+    }, 300);
   },
+
+
 
   calcGameXP(score, hp, bestStreak, perfectCount) {
     let xp = Math.floor(score / 3);
@@ -544,22 +695,16 @@ const XP = {
   },
 
   async checkAndStart(mode) {
+    // Kiểm tra đăng nhập qua Auth system
+    const user = Auth.getCurrentUser();
+    if (!user) {
+      toast('Vui lòng đăng nhập trước khi chơi!', 'warn');
+      showScreen('screen-login');
+      return;
+    }
+    // Đồng bộ player-name input để code cũ vẫn hoạt động
     const nameInput = document.getElementById('player-name');
-    const name = nameInput ? nameInput.value.trim() : '';
-    if (!name) {
-      toast('Vui lòng nhập và đăng ký tên trước khi chơi!', 'warn');
-      if (nameInput) nameInput.focus();
-      return;
-    }
-    const profile = await this.getProfile(name);
-    if (!profile) {
-      toast('Tên này chưa được đăng ký! Vui lòng bấm Đăng ký.', 'warn');
-      return;
-    }
-    if (profile.id !== LeaderboardSync.getDeviceId()) {
-      toast('Tên này đã được người khác sử dụng trên máy khác!', 'error');
-      return;
-    }
+    if (nameInput) nameInput.value = user.name;
 
     if (mode === 'lobby') {
       showScreen('screen-lobby');
@@ -976,7 +1121,9 @@ function onTokenClick(tid) {
 /* ══ GAME ══ */
 const Game = {
   startGame() {
-    S.name = document.getElementById('player-name').value.trim() || 'Thám Tử';
+    // Đọc tên từ Auth session (uu tiên) hoặc input (fallback)
+    const authUser = Auth.getCurrentUser();
+    S.name = (authUser && authUser.name) || document.getElementById('player-name')?.value?.trim() || 'Thám Tử';
     localStorage.setItem('erase_player_name', S.name);
     S.qIdx = 0; S.score = 0; S.qResults = [];
     S.analytics = { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] };
@@ -997,6 +1144,7 @@ const Game = {
   exitToMenu() {
     SessionManager.clearGame(); stopTimer(); S.active = false;
     XP.renderWelcome(); // Update level text
+    AuthUI.refreshWelcomeUser(); // Refresh user info block
     showScreen('screen-welcome');
   },
   restartGame() { this.startGame(); },
@@ -2662,9 +2810,26 @@ const RoomStudent = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-  XP.renderWelcome();
   QuestionManager.init();
 
+  // ── Auth Routing ──
+  const authUser = Auth.getCurrentUser();
+  if (!authUser) {
+    // Chưa đăng nhập → hiện màn hình Login
+    showScreen('screen-login');
+  } else {
+    // Đã đăng nhập → hiện màn hình Welcome + render user info
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) nameInput.value = authUser.name;
+    AuthUI.refreshWelcomeUser();
+    XP.renderWelcome();
+    showScreen('screen-welcome');
+  }
+
+  // ── Seed Admin accounts (chạy ngầm) ──
+  seedAdmins();
+
+  // ── Session Restore (cho Thách Đấu) ──
   const session = SessionManager.get();
   if (session) {
     setTimeout(() => {
@@ -2678,29 +2843,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 600);
   }
 
+  // ── Game Save Restore ──
   const gameSave = !session && SessionManager.getGame();
   if (gameSave && gameSave.activeQuestions && gameSave.activeQuestions.length) {
-    setTimeout(() => {
-      Object.assign(S, {
-        name: gameSave.name,
-        qIdx: gameSave.qIdx,
-        score: gameSave.score,
-        qResults: gameSave.qResults || [],
-        analytics: gameSave.analytics || { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] },
-        hp: gameSave.hp,
-        streak: gameSave.streak,
-        bestStreak: gameSave.bestStreak,
-        comboMult: gameSave.comboMult,
-        activeQuestions: gameSave.activeQuestions,
-        active: true,
-      });
-      toast('Đã khôi phục game — tiếp tục vụ án ' + (S.qIdx + 1) + '!', 'ok');
-      showScreen('screen-game');
-      HP.render();
-      Streak.render();
-      updateScoreUI();
-      renderQ(S.qIdx);
-    }, 600);
+    // Chỉ restore nếu đã đăng nhập
+    if (authUser) {
+      setTimeout(() => {
+        Object.assign(S, {
+          name: gameSave.name,
+          qIdx: gameSave.qIdx,
+          score: gameSave.score,
+          qResults: gameSave.qResults || [],
+          analytics: gameSave.analytics || { dAttempts: [], cAttempts: [], dTimes: [], cTimes: [], wrongClicks: [], extra: [] },
+          hp: gameSave.hp,
+          streak: gameSave.streak,
+          bestStreak: gameSave.bestStreak,
+          comboMult: gameSave.comboMult,
+          activeQuestions: gameSave.activeQuestions,
+          active: true,
+        });
+        toast('Đã khôi phục game — tiếp tục vụ án ' + (S.qIdx + 1) + '!', 'ok');
+        showScreen('screen-game');
+        HP.render();
+        Streak.render();
+        updateScoreUI();
+        renderQ(S.qIdx);
+      }, 600);
+    }
   }
 });
+
+
 
