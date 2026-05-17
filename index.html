@@ -71,11 +71,6 @@
           <div class="auth-field">
             <label class="auth-label">🔑 Mật khẩu <span style="font-size:10px;opacity:.7">(tối thiểu 4 ký tự)</span></label>
             <input id="reg-password" class="auth-input" type="password" placeholder="Tạo mật khẩu..."
-              onkeydown="if(event.key==='Enter')document.getElementById('reg-confirm').focus()">
-          </div>
-          <div class="auth-field">
-            <label class="auth-label">🔑 Xác nhận mật khẩu</label>
-            <input id="reg-confirm" class="auth-input" type="password" placeholder="Nhập lại mật khẩu..."
               onkeydown="if(event.key==='Enter')AuthUI.handleRegister()">
           </div>
           <div id="auth-error-signup" class="auth-error"></div>

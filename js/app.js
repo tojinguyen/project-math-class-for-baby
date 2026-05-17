@@ -330,12 +330,11 @@ const Auth = {
    * Đăng ký tài khoản mới với role 'student'.
    * Throw Error nếu tên đã tồn tại hoặc mật khẩu không hợp lệ.
    */
-  async register(name, password, confirmPassword) {
+  async register(name, password) {
     name = (name || '').trim();
     if (!name) throw new Error('Vui lòng nhập tên hiển thị!');
     if (!password) throw new Error('Vui lòng nhập mật khẩu!');
     if (password.length < 4) throw new Error('Mật khẩu phải có ít nhất 4 ký tự!');
-    if (password !== confirmPassword) throw new Error('Mật khẩu xác nhận không khớp!');
     const exists = await LeaderboardSync.getProfile(name);
     if (exists) throw new Error('Tên "' + name + '" đã được sử dụng! Chọn tên khác.');
     const newProfile = {
@@ -426,11 +425,10 @@ const AuthUI = {
   async handleRegister() {
     const name = (document.getElementById('reg-name')?.value || '').trim();
     const password = document.getElementById('reg-password')?.value || '';
-    const confirm = document.getElementById('reg-confirm')?.value || '';
     const errEl = document.getElementById('auth-error-signup');
     this._setLoading('btn-register', true);
     try {
-      const profile = await Auth.register(name, password, confirm);
+      const profile = await Auth.register(name, password);
       toast(`🎉 Đăng ký thành công! Chào mừng thám tử ${profile.name}!`, 'correct');
       this._onLoginSuccess(profile);
     } catch (e) {
