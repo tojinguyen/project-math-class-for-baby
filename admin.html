@@ -8,7 +8,9 @@
   <meta name="description" content="Màn hình quản lý và theo dõi tiến bộ học sinh dành cho Admin.">
   <meta name="robots" content="noindex, nofollow">
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
   <!-- Styles -->
   <link rel="stylesheet" href="css/admin.css">
   <!-- Supabase -->
@@ -23,7 +25,7 @@
       <a href="index.html" class="adm-logo" title="Quay về trang chính" style="text-decoration:none">E·RASE</a>
       <div>
         <div class="adm-title">📊 Theo Dõi Học Sinh</div>
-        <div class="adm-subtitle">ADMIN DASHBOARD · Chỉ Admin mới xem được</div>
+        <div class="adm-subtitle">ADMIN DASHBOARD</div>
       </div>
     </div>
     <div class="adm-header-right">
@@ -67,16 +69,13 @@
         <input type="text" id="adm-search" placeholder="Tìm theo tên học sinh...">
       </div>
       <div class="adm-filter-group">
-        <button class="adm-filter-btn active"
-          onclick="AdminDashboard.setFilter('all', this)">
+        <button class="adm-filter-btn active" onclick="AdminDashboard.setFilter('all', this)">
           📋 Tất cả
         </button>
-        <button class="adm-filter-btn"
-          onclick="AdminDashboard.setFilter('warning', this)">
+        <button class="adm-filter-btn" onclick="AdminDashboard.setFilter('warning', this)">
           ⚠️ Cần chú ý
         </button>
-        <button class="adm-filter-btn"
-          onclick="AdminDashboard.setFilter('progress_down', this)">
+        <button class="adm-filter-btn" onclick="AdminDashboard.setFilter('progress_down', this)">
           ↓ Thụt lùi
         </button>
         <button class="btn-refresh" id="btn-refresh">
@@ -97,26 +96,21 @@
       <table class="adm-table" id="adm-table">
         <thead>
           <tr>
-            <th class="col-name sorted" data-col="name"
-              onclick="AdminDashboard.sort('name')">
+            <th class="col-name sorted" data-col="name" onclick="AdminDashboard.sort('name')">
               👤 Tên HS <span class="sort-icon">▲</span>
             </th>
-            <th class="col-games" data-col="games"
-              onclick="AdminDashboard.sort('games')"
+            <th class="col-games" data-col="games" onclick="AdminDashboard.sort('games')"
               data-tooltip="Tổng số ván Solo đã chơi">
               🎮 Ván <span class="sort-icon">▲</span>
             </th>
-            <th class="col-errors"
-              data-tooltip="Loại lỗi hay gặp ở từng giai đoạn">
+            <th class="col-errors" data-tooltip="Loại lỗi hay gặp ở từng giai đoạn">
               🔎 Lỗi hay gặp
             </th>
-            <th class="col-speed" data-col="speed"
-              onclick="AdminDashboard.sort('speed')"
+            <th class="col-speed" data-col="speed" onclick="AdminDashboard.sort('speed')"
               data-tooltip="Thời gian trung bình để hoàn thành mỗi câu (GĐ1 + GĐ2)">
               ⚡ Tốc độ TB <span class="sort-icon">▲</span>
             </th>
-            <th class="col-progress" data-col="progress"
-              onclick="AdminDashboard.sort('progress')"
+            <th class="col-progress" data-col="progress" onclick="AdminDashboard.sort('progress')"
               data-tooltip="So sánh điểm 3 ván gần nhất với 3 ván trước">
               📈 Tiến bộ <span class="sort-icon">▲</span>
             </th>
@@ -141,4 +135,5 @@
   <script src="js/admin.js"></script>
 
 </body>
+
 </html>
