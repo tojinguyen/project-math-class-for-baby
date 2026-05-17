@@ -2258,6 +2258,7 @@ const RoomStudent = {
   phase: 'detect', dAttempt: 0, cAttempt: 0,
   selected: null, mcSel: null,
   currentQ: null,
+  _joinPing: null,
 
   init(code, name) {
     this.name = name; this.roomCode = code; this.score = 0;
@@ -2289,6 +2290,8 @@ const RoomStudent = {
       .on('broadcast', { event: 'question' }, ({ payload }) => {
         if (!payload._to || payload._to === this.studentId) {
           clearTimeout(connTimeout);
+          // Game đã bắt đầu → dừng ping join
+          clearInterval(this._joinPing); this._joinPing = null;
           this.currentQ = payload.q;
           this.dAttempt = 0; this.cAttempt = 0;
           this.selected = null; this.mcSel = null;
@@ -2316,10 +2319,17 @@ const RoomStudent = {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           clearTimeout(connTimeout);
-          this.channel.send({
-            type: 'broadcast', event: 'join',
-            payload: { studentId: this.studentId, name: this.name }
-          });
+          // Gửi join ngay lập tức
+          const sendJoin = () => {
+            if (!this.channel) return;
+            this.channel.send({
+              type: 'broadcast', event: 'join',
+              payload: { studentId: this.studentId, name: this.name }
+            });
+          };
+          sendJoin();
+          // Tiếp tục ping mỗi 4s để host không bỏ lỡ (idempotent phía host)
+          this._joinPing = setInterval(sendJoin, 4000);
           document.getElementById('student-wait-title').textContent = '✅ Đã vào phòng!';
           document.getElementById('student-wait-sub').textContent = 'Chờ giáo viên bắt đầu vụ án...';
           toast('✅ Đã vào phòng ' + code, 'ok');
@@ -2642,6 +2652,7 @@ const RoomStudent = {
   },
 
   exitToMenu() {
+    clearInterval(this._joinPing); this._joinPing = null;
     SessionManager.clear();
     LeaderboardSync.removeChannel(this.channel);
     this.channel = null;
