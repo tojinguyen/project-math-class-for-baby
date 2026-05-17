@@ -260,6 +260,19 @@ const LeaderboardSync = {
       throw error;
     }
     return data;
+  },
+
+  // ── Realtime Channel helpers (dùng cho Thách Đấu) ──
+  createChannel(roomCode) {
+    this.init();
+    return this.client.channel('room:' + roomCode, {
+      config: { broadcast: { self: false } }
+    });
+  },
+  removeChannel(channel) {
+    if (channel) {
+      try { this.client.removeChannel(channel); } catch (e) { }
+    }
   }
 };
 
@@ -1820,8 +1833,8 @@ const Lobby = {
    ROOM HOST — teacher / projector
 ══════════════════════════════════════════════════════════════ */
 const RoomHost = {
-  peer: null, roomCode: null,
-  conns: {},          // peerId → {conn, name, score, dAttempt, cAttempt, dOk, answered}
+  channel: null, roomCode: null,
+  players: {},        // studentId → {name, score, dAttempt, cAttempt, dOk, answered, cAnswered}
   activeQuestions: [],
   qIdx: 0, phase: 'detect', gameStarted: false,
   timer: null, elapsed: 0,
@@ -1829,7 +1842,7 @@ const RoomHost = {
   init(qCount, ratios) {
     this.activeQuestions = QuestionManager.getQuestions(qCount, { ratios });
     this.qIdx = 0; this.gameStarted = false;
-    this.conns = {};
+    this.players = {};
 
     // Generate room code: ERAS-XXXX
     const rand = Math.floor(1000 + Math.random() * 9000);
@@ -1841,14 +1854,8 @@ const RoomHost = {
     document.getElementById('host-waiting-view').style.display = 'flex';
     document.getElementById('host-game-view').style.display = 'none';
 
-    if (typeof Peer === 'undefined') {
-      toast('Lỗi: Thư viện PeerJS không tải được. Kiểm tra kết nối mạng!', 'err');
-      showScreen('screen-lobby');
-      return;
-    }
-
     SessionManager.saveHost(this.roomCode, this.activeQuestions, this.qIdx, false);
-    this._createPeer();
+    this._createChannel();
   },
 
   restore(session) {
@@ -1856,7 +1863,7 @@ const RoomHost = {
     this.activeQuestions = session.activeQuestions;
     this.qIdx = session.qIdx;
     this.gameStarted = session.gameStarted;
-    this.conns = {};
+    this.players = {};
 
     showScreen('screen-host');
     document.getElementById('hb-room-code').textContent = this.roomCode;
@@ -1874,169 +1881,115 @@ const RoomHost = {
       document.getElementById('host-game-view').style.display = 'none';
     }
 
-    if (typeof Peer === 'undefined') {
-      toast('Lỗi: Thư viện PeerJS không tải được!', 'err');
-      return;
-    }
-    this._createPeer(0, true);
+    this._createChannel(true);
   },
 
-  _createPeer(retryCount = 0, isRestore = false) {
-    const peerId = 'erase-room-' + this.roomCode;
-    console.log('RoomHost: Creating Peer with ID:', peerId, isRestore ? '(restore)' : '');
-
-    if (this.peer) { try { this.peer.destroy(); } catch (e) { } }
-
-    this.peer = new Peer(peerId, {
-      debug: 2,
-      config: {
-        'iceServers': [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478' }
-        ]
-      }
-    });
-    this.peer.on('open', id => {
-      console.log('Host Peer opened with ID:', id);
-      toast(isRestore ? ('✓ Đã khôi phục phòng: ' + this.roomCode) : ('✓ Phòng đã tạo: ' + this.roomCode), 'ok');
-    });
-    this.peer.on('connection', conn => this._onConnection(conn));
-    this.peer.on('disconnected', () => {
-      console.warn('Host disconnected from signaling server. Reconnecting...');
-      this.peer.reconnect();
-    });
-    this.peer.on('error', err => {
-      console.error('Host Peer Error:', err);
-      if (err.type === 'unavailable-id') {
-        if (isRestore && retryCount < 5) {
-          const wait = (retryCount + 1) * 3;
-          toast(`Đang chờ phiên cũ hết hạn... thử lại sau ${wait}s`, '');
-          setTimeout(() => this._createPeer(retryCount + 1, true), wait * 1000);
-        } else {
-          toast('Mã phòng đã tồn tại, thử lại!', 'err');
-          SessionManager.clear();
-          showScreen('screen-lobby');
+  _createChannel(isRestore = false) {
+    LeaderboardSync.removeChannel(this.channel);
+    this.channel = LeaderboardSync.createChannel(this.roomCode);
+    this.channel
+      .on('broadcast', { event: 'join' },           ({ payload }) => this._onJoin(payload))
+      .on('broadcast', { event: 'detect_answer' },  ({ payload }) => this._onDetect(payload))
+      .on('broadcast', { event: 'correct_answer' }, ({ payload }) => this._onCorrect(payload))
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          toast(isRestore ? ('✓ Đã khôi phục phòng: ' + this.roomCode) : ('✓ Phòng đã tạo: ' + this.roomCode), 'ok');
+        } else if (status === 'CHANNEL_ERROR') {
+          toast('Lỗi kết nối phòng! Kiểm tra mạng.', 'err');
         }
-      } else {
-        toast('Lỗi kết nối: ' + err.type, 'err');
-      }
-    });
+      });
   },
 
   _saveSession() {
     SessionManager.saveHost(this.roomCode, this.activeQuestions, this.qIdx, this.gameStarted);
   },
 
-  _onConnection(conn) {
-    // Initialize connection state immediately to avoid race conditions with data events
-    this.conns[conn.peer] = { conn, name: '...', score: 0, dAttempt: 0, cAttempt: 0, dOk: false, answered: false, mcSel: null };
-
-    conn.on('open', () => {
-      this._updatePlayerCount();
-      console.log('Student connected:', conn.peer);
-    });
-    conn.on('data', data => this._onData(conn.peer, data));
-    conn.on('close', () => {
-      delete this.conns[conn.peer];
-      this._updatePlayerCount();
-      this._renderScoreboard();
-    });
-  },
-
-  _onData(peerId, data) {
-    const p = this.conns[peerId];
-    if (!p) return;
-    switch (data.type) {
-      case 'join':
-        p.name = data.name;
-        this._updatePlayerCount();
-        this._renderWaitingChips();
-        if (this.gameStarted) {
-          // Send current question if game already running
-          const q = this.activeQuestions[this.qIdx];
-          p.conn.send({ type: 'question', q: this._stripQ(q), qIdx: this.qIdx, total: this.activeQuestions.length, phase: this.phase });
-        }
-        break;
-      case 'detect_answer':
-        this._handleDetect(peerId, data.tokenId);
-        break;
-      case 'correct_answer':
-        this._handleCorrect(peerId, data.mcSel);
-        break;
+  _onJoin({ studentId, name }) {
+    if (!studentId) return;
+    this.players[studentId] = {
+      studentId, name, score: 0,
+      dAttempt: 0, cAttempt: 0,
+      dOk: false, answered: false, cAnswered: false
+    };
+    this._updatePlayerCount();
+    this._renderWaitingChips();
+    if (this.gameStarted) {
+      const q = this.activeQuestions[this.qIdx];
+      this._sendTo(studentId, 'question', {
+        q: this._stripQ(q), qIdx: this.qIdx,
+        total: this.activeQuestions.length, phase: this.phase
+      });
     }
   },
 
-  _stripQ(q) {
-    // Don't send errTokens/primaryErr to students (no cheating)
-    const { errTokens, primaryErr, ...safe } = q;
-    return safe;
-  },
-
-  _handleDetect(peerId, tokenId) {
-    const p = this.conns[peerId];
+  _onDetect({ studentId, tokenId }) {
+    const p = this.players[studentId];
     if (!p || this.phase !== 'detect' || p.dAttempt >= 2) return;
     const q = this.activeQuestions[this.qIdx];
     p.dAttempt++;
-    const isCorrect = q.primaryErr.includes(tokenId) &&
-      !Object.values(this.conns).some(x => x !== p && x.answered === true && !q.errTokens.includes(tokenId));
-    // Simpler: check if selected token is primary error
     const correct = q.primaryErr.includes(tokenId);
-
     let pts = 0;
     if (correct) {
       pts = p.dAttempt === 1 ? 10 : 5;
       p.score += pts; p.dOk = true; p.answered = true;
-      p.conn.send({ type: 'detect_result', correct: true, pts, errTokens: q.errTokens, rule: q.rule, dAttempt: p.dAttempt });
+      this._sendTo(studentId, 'detect_result', { correct: true, pts, errTokens: q.errTokens, rule: q.rule, dAttempt: p.dAttempt });
     } else if (p.dAttempt < 2) {
-      p.conn.send({ type: 'detect_result', correct: false, again: true, dAttempt: p.dAttempt });
+      this._sendTo(studentId, 'detect_result', { correct: false, again: true, dAttempt: p.dAttempt });
     } else {
       p.answered = true;
-      p.conn.send({ type: 'detect_result', correct: false, again: false, errTokens: q.errTokens, rule: q.rule, dAttempt: p.dAttempt });
+      this._sendTo(studentId, 'detect_result', { correct: false, again: false, errTokens: q.errTokens, rule: q.rule, dAttempt: p.dAttempt });
     }
     this._renderScoreboard();
     this._updateAnsProgress();
     this._checkAllAnswered();
   },
 
-  _handleCorrect(peerId, mcSel) {
-    const p = this.conns[peerId];
+  _onCorrect({ studentId, mcSel }) {
+    const p = this.players[studentId];
     if (!p || this.phase !== 'correct' || p.cAttempt >= 2) return;
     const q = this.activeQuestions[this.qIdx];
     p.cAttempt++;
-
     let correct = false;
     if (q.correction.type === 'mc' || q.correction.type === 'symbol') {
       correct = mcSel === q.correction.correct;
     } else {
-      // Text answer
       const val = (mcSel || '').toString().trim().replace(/\s+/g, '');
       correct = q.correction.correctAnswers && q.correction.correctAnswers.some(a => a.replace(/\s+/g, '') === val);
     }
-
     let pts = 0;
     if (correct) {
       pts = p.cAttempt === 1 ? 10 : 5;
-      if (p.dOk && p.cAttempt === 1) pts += 5; // perfect bonus
+      if (p.dOk && p.cAttempt === 1) pts += 5;
       p.score += pts; p.cAnswered = true;
-      p.conn.send({ type: 'correct_result', correct: true, pts, exp: q.correction.exp, cAttempt: p.cAttempt });
+      this._sendTo(studentId, 'correct_result', { correct: true, pts, exp: q.correction.exp, cAttempt: p.cAttempt });
     } else if (p.cAttempt < 2) {
-      pts = -5;
-      p.score += pts;
-      p.conn.send({ type: 'correct_result', correct: false, again: true, pts, cAttempt: p.cAttempt });
+      pts = -5; p.score += pts;
+      this._sendTo(studentId, 'correct_result', { correct: false, again: true, pts, cAttempt: p.cAttempt });
     } else {
-      p.cAnswered = true;
-      pts = -5;
-      p.score += pts;
+      p.cAnswered = true; pts = -5; p.score += pts;
       const disp = q.correction.displayCorrect || q.correction.correct || (q.correction.correctAnswers ? q.correction.correctAnswers[0] : '?');
-      p.conn.send({ type: 'correct_result', correct: false, again: false, pts, answer: disp, exp: q.correction.exp, cAttempt: p.cAttempt });
+      this._sendTo(studentId, 'correct_result', { correct: false, again: false, pts, answer: disp, exp: q.correction.exp, cAttempt: p.cAttempt });
     }
     this._renderScoreboard();
     this._updateAnsProgress();
     this._checkAllAnswered();
   },
 
+  _stripQ(q) {
+    const { errTokens, primaryErr, ...safe } = q;
+    return safe;
+  },
+
+  _broadcast(event, payload) {
+    this.channel.send({ type: 'broadcast', event, payload });
+  },
+
+  _sendTo(studentId, event, payload) {
+    this.channel.send({ type: 'broadcast', event, payload: { ...payload, _to: studentId } });
+  },
+
   _checkAllAnswered() {
-    const players = Object.values(this.conns);
+    const players = Object.values(this.players);
     if (!players.length) return;
     const allDone = this.phase === 'detect'
       ? players.every(p => p.answered || p.dAttempt >= 2)
@@ -2067,7 +2020,7 @@ const RoomHost = {
     this.phase = 'detect'; this.qIdx = idx;
     this._saveSession();
     // Reset all player states
-    Object.values(this.conns).forEach(p => {
+    Object.values(this.players).forEach(p => {
       p.dAttempt = 0; p.cAttempt = 0; p.answered = false; p.cAnswered = false; p.dOk = false;
     });
 
@@ -2129,7 +2082,7 @@ const RoomHost = {
       fb.className = 'ch-feedback-big show fc-warn';
       fb.innerHTML = `<div class="cfb-icon">💡</div><div class="cfb-text"><strong>Đây là dấu bị làm sai!</strong><div class="cfb-rule">${q.rule}</div></div>`;
       applyMathFormatting(fb);
-      this._broadcast({ type: 'reveal_detect', errTokens: q.errTokens, rule: q.rule });
+      this._broadcast('reveal_detect', { errTokens: q.errTokens, rule: q.rule });
       document.getElementById('host-btn-skip').style.display = 'inline-flex';
     } else {
       const disp = q.correction.displayCorrect || q.correction.correct || (q.correction.correctAnswers ? q.correction.correctAnswers[0] : '?');
@@ -2137,7 +2090,7 @@ const RoomHost = {
       fb.className = 'ch-feedback-big show fc-correct';
       fb.innerHTML = `<div class="cfb-icon">✅</div><div class="cfb-text"><strong>Cách sửa đúng:</strong> <span class="math-tex">${disp}</span><div class="cfb-rule">${q.correction.exp || ''}</div></div>`;
       applyMathFormatting(fb);
-      this._broadcast({ type: 'reveal_correct', answer: disp, exp: q.correction.exp });
+      this._broadcast('reveal_correct', { answer: disp, exp: q.correction.exp });
       document.getElementById('host-btn-next').disabled = false;
     }
   },
@@ -2155,11 +2108,10 @@ const RoomHost = {
     document.getElementById('host-correction').classList.add('show');
     document.getElementById('host-btn-skip').style.display = 'none';
     document.getElementById('hcb-instruction').textContent = 'HS đang chọn cách sửa...';
-    Object.values(this.conns).forEach(p => { p.cAttempt = 0; p.cAnswered = false; });
+    Object.values(this.players).forEach(p => { p.cAttempt = 0; p.cAnswered = false; });
     this._updateAnsProgress();
     // Broadcast phase change
-    this._broadcast({
-      type: 'phase',
+    this._broadcast('phase', {
       phase: 'correct',
       correction: {
         question: q.correction.question,
@@ -2182,8 +2134,8 @@ const RoomHost = {
 
   _showHostResults() {
     this._stopTimer();
-    const players = Object.values(this.conns).sort((a, b) => b.score - a.score);
-    this._broadcast({ type: 'game_end', leaderboard: players.map(p => ({name: p.name, score: p.score})) });
+    const players = Object.values(this.players).sort((a, b) => b.score - a.score);
+    this._broadcast('game_end', { leaderboard: players.map(p => ({name: p.name, score: p.score})) });
     
     const list = document.getElementById('room-results-list');
     list.innerHTML = players.map((p, i) => {
@@ -2223,7 +2175,7 @@ const RoomHost = {
   _renderScoreboard() {
     const list = document.getElementById('hsb-list');
     const count = document.getElementById('hsb-count');
-    const players = Object.values(this.conns).sort((a, b) => b.score - a.score);
+    const players = Object.values(this.players).sort((a, b) => b.score - a.score);
     count.textContent = players.length + ' HS';
     document.getElementById('hb-players').textContent = players.length + ' HS';
     if (!players.length) {
@@ -2231,10 +2183,8 @@ const RoomHost = {
       return;
     }
     list.innerHTML = players.map((p, i) => {
-      const isDet = this.phase === 'detect';
-      const answered = isDet ? p.answered : p.cAnswered;
-      const correct = isDet ? p.dOk : (p.cAttempt > 0 && !p.cAnswered && p.cAttempt < 2 ? false : p.cAnswered);
-      return `<div class="hsb-row ${answered ? (p.dOk || p.cAnswered ? 'answered' : '') : ''}" id="hsbr-${p.conn.peer}">
+      const answered = this.phase === 'detect' ? p.answered : p.cAnswered;
+      return `<div class="hsb-row ${answered ? 'answered' : ''}" id="hsbr-${p.studentId}">
         <div class="hsb-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</div>
         <div class="hsb-name">${p.name}</div>
         <div class="hsb-status">${answered ? '✅' : '⏳'}</div>
@@ -2244,7 +2194,7 @@ const RoomHost = {
   },
 
   _updateAnsProgress() {
-    const players = Object.values(this.conns);
+    const players = Object.values(this.players);
     if (!players.length) { document.getElementById('host-ans-progress').style.width = '0%'; return; }
     const done = this.phase === 'detect'
       ? players.filter(p => p.answered || p.dAttempt >= 2).length
@@ -2255,7 +2205,7 @@ const RoomHost = {
   },
 
   _updatePlayerCount() {
-    const n = Object.keys(this.conns).length;
+    const n = Object.keys(this.players).length;
     document.getElementById('hb-players').textContent = n + ' HS';
     document.getElementById('hw-waiting-note').textContent = `Đã có ${n} học sinh trong phòng`;
     const btn = document.getElementById('host-start-game-btn');
@@ -2268,7 +2218,7 @@ const RoomHost = {
 
   _renderWaitingChips() {
     const wrap = document.getElementById('hw-players-waiting');
-    const players = Object.values(this.conns).filter(p => p.name !== '...');
+    const players = Object.values(this.players);
     if (!players.length) {
       wrap.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--white-ghost)">Chưa có học sinh nào...</div>';
       return;
@@ -2278,11 +2228,6 @@ const RoomHost = {
     ).join('');
   },
 
-  _broadcast(data) {
-    Object.values(this.conns).forEach(p => {
-      try { p.conn.send(data); } catch (e) { }
-    });
-  },
 
   _startTimer() {
     this._stopTimer(); this.elapsed = 0;
@@ -2298,7 +2243,8 @@ const RoomHost = {
   exitToMenu() {
     SessionManager.clear();
     this._stopTimer();
-    if (this.peer) { this.peer.destroy(); this.peer = null; }
+    LeaderboardSync.removeChannel(this.channel);
+    this.channel = null;
     showScreen('screen-welcome');
   }
 };
@@ -2307,7 +2253,7 @@ const RoomHost = {
    ROOM STUDENT — per student device
 ══════════════════════════════════════════════════════════════ */
 const RoomStudent = {
-  peer: null, hostConn: null,
+  channel: null, studentId: null,
   name: '', roomCode: '', score: 0,
   phase: 'detect', dAttempt: 0, cAttempt: 0,
   selected: null, mcSel: null,
@@ -2316,6 +2262,7 @@ const RoomStudent = {
   init(code, name) {
     this.name = name; this.roomCode = code; this.score = 0;
     this.dAttempt = 0; this.cAttempt = 0; this.selected = null;
+    this.studentId = 'stu-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
     SessionManager.saveStudent(code, name);
 
     showScreen('screen-student');
@@ -2329,99 +2276,61 @@ const RoomStudent = {
     document.getElementById('student-wait-title').textContent = 'Đang kết nối...';
     document.getElementById('student-wait-sub').textContent = 'Đang tìm phòng ' + code;
 
-    // Check if Peer exists
-    if (typeof Peer === 'undefined') {
-      toast('Lỗi: Thư viện PeerJS không tải được!', 'err');
-      document.getElementById('student-wait-title').textContent = '❌ Lỗi hệ thống!';
-      document.getElementById('student-wait-sub').textContent = 'Không thể tải thư viện kết nối.';
-      return;
-    }
+    LeaderboardSync.removeChannel(this.channel);
 
-    // Cleanup old peer if exists
-    if (this.peer) { try { this.peer.destroy(); } catch (e) { } }
-
-    // Connect to host
-    const hostId = 'erase-room-' + code;
-    console.log('RoomStudent: Attempting to connect to host:', hostId);
-    this.peer = new Peer(null, {
-      debug: 2,
-      config: {
-        'iceServers': [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:global.stun.twilio.com:3478' }
-        ]
-      }
-    });
-
-    // Connection timeout
     let connTimeout = setTimeout(() => {
-      if (!this.hostConn || !this.hostConn.open) {
-        toast('Kết nối quá lâu, hãy kiểm tra mã phòng!', 'err');
-        document.getElementById('student-wait-title').textContent = '❌ Kết nối thất bại!';
-        document.getElementById('student-wait-sub').textContent = 'Vui lòng thử lại hoặc kiểm tra mạng.';
-      }
+      toast('Kết nối quá lâu, hãy kiểm tra mã phòng!', 'err');
+      document.getElementById('student-wait-title').textContent = '❌ Kết nối thất bại!';
+      document.getElementById('student-wait-sub').textContent = 'Vui lòng thử lại hoặc kiểm tra mạng.';
     }, 15000);
 
-    this.peer.on('open', id => {
-      console.log('Student Peer opened with ID:', id);
-      this.hostConn = this.peer.connect(hostId, { reliable: true });
-
-      this.hostConn.on('open', () => {
-        clearTimeout(connTimeout);
-        this.hostConn.send({ type: 'join', name: this.name });
-        document.getElementById('student-wait-title').textContent = '✅ Đã vào phòng!';
-        document.getElementById('student-wait-sub').textContent = 'Chờ giáo viên bắt đầu vụ án...';
-        toast('✅ Đã vào phòng ' + code, 'ok');
+    this.channel = LeaderboardSync.createChannel(code);
+    this.channel
+      .on('broadcast', { event: 'question' }, ({ payload }) => {
+        if (!payload._to || payload._to === this.studentId) {
+          clearTimeout(connTimeout);
+          this.currentQ = payload.q;
+          this.dAttempt = 0; this.cAttempt = 0;
+          this.selected = null; this.mcSel = null;
+          this._showQuestion(payload.q, payload.qIdx, payload.total);
+        }
+      })
+      .on('broadcast', { event: 'phase' }, ({ payload }) => {
+        if (payload.phase === 'correct') this._showCorrection(payload.correction);
+      })
+      .on('broadcast', { event: 'detect_result' }, ({ payload }) => {
+        if (payload._to === this.studentId) this._onDetectResult(payload);
+      })
+      .on('broadcast', { event: 'correct_result' }, ({ payload }) => {
+        if (payload._to === this.studentId) this._onCorrectResult(payload);
+      })
+      .on('broadcast', { event: 'reveal_detect' }, ({ payload }) => {
+        this._revealDetect(payload.errTokens, payload.rule);
+      })
+      .on('broadcast', { event: 'reveal_correct' }, ({ payload }) => {
+        this._revealCorrect(payload.answer, payload.exp);
+      })
+      .on('broadcast', { event: 'game_end' }, ({ payload }) => {
+        this._showGameEnd(payload.leaderboard);
+      })
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(connTimeout);
+          this.channel.send({
+            type: 'broadcast', event: 'join',
+            payload: { studentId: this.studentId, name: this.name }
+          });
+          document.getElementById('student-wait-title').textContent = '✅ Đã vào phòng!';
+          document.getElementById('student-wait-sub').textContent = 'Chờ giáo viên bắt đầu vụ án...';
+          toast('✅ Đã vào phòng ' + code, 'ok');
+        } else if (status === 'CHANNEL_ERROR') {
+          clearTimeout(connTimeout);
+          toast('Không tìm thấy phòng ' + code + '!', 'err');
+          document.getElementById('student-wait-title').textContent = '❌ Không tìm thấy phòng!';
+          document.getElementById('student-wait-sub').textContent = 'Kiểm tra lại mã phòng và thử lại.';
+          setTimeout(() => showScreen('screen-lobby'), 2000);
+        }
       });
-      this.hostConn.on('data', data => this._onData(data));
-      this.hostConn.on('close', () => {
-        toast('Mất kết nối với phòng!', 'err');
-      });
-      this.hostConn.on('error', err => {
-        console.error('Connection Error:', err);
-        toast('Lỗi kết nối học sinh!', 'err');
-      });
-    });
-    this.peer.on('error', err => {
-      console.error('Student Peer Error:', err);
-      if (err.type === 'peer-unavailable') {
-        toast('Không tìm thấy phòng ' + code + '!', 'err');
-        document.getElementById('student-wait-title').textContent = '❌ Không tìm thấy phòng!';
-        document.getElementById('student-wait-sub').textContent = 'Kiểm tra lại mã phòng và thử lại.';
-        setTimeout(() => showScreen('screen-lobby'), 2000);
-      } else {
-        toast('Lỗi: ' + err.type, 'err');
-      }
-    });
-  },
-
-  _onData(data) {
-    switch (data.type) {
-      case 'question':
-        this.currentQ = data.q;
-        this.dAttempt = 0; this.cAttempt = 0;
-        this.selected = null; this.mcSel = null;
-        this._showQuestion(data.q, data.qIdx, data.total);
-        break;
-      case 'phase':
-        if (data.phase === 'correct') this._showCorrection(data.correction);
-        break;
-      case 'detect_result':
-        this._onDetectResult(data);
-        break;
-      case 'correct_result':
-        this._onCorrectResult(data);
-        break;
-      case 'reveal_detect':
-        this._revealDetect(data.errTokens, data.rule);
-        break;
-      case 'reveal_correct':
-        this._revealCorrect(data.answer, data.exp);
-        break;
-      case 'game_end':
-        this._showGameEnd(data.leaderboard);
-        break;
-    }
   },
 
   _showQuestion(q, qIdx, total) {
@@ -2489,7 +2398,7 @@ const RoomStudent = {
     this.dAttempt++;
     this._setPips(2, this.dAttempt, 'd');
     document.getElementById('student-btn-detect').disabled = true;
-    this.hostConn.send({ type: 'detect_answer', tokenId: this.selected });
+    this.channel.send({ type: 'broadcast', event: 'detect_answer', payload: { studentId: this.studentId, tokenId: this.selected } });
     // Show "waiting" feedback
     this._showStudentFB('detect', '⏳', '<strong>Đã gửi! Chờ kết quả...</strong>', 'wait');
   },
@@ -2601,7 +2510,7 @@ const RoomStudent = {
     this.cAttempt++;
     this._setPips(2, this.cAttempt, 'c');
     document.getElementById('student-btn-correct').disabled = true;
-    this.hostConn.send({ type: 'correct_answer', mcSel: this.mcSel });
+    this.channel.send({ type: 'broadcast', event: 'correct_answer', payload: { studentId: this.studentId, mcSel: this.mcSel } });
     this._showStudentFB('correct', '⏳', '<strong>Đã gửi! Chờ kết quả...</strong>', 'wait');
   },
 
@@ -2734,7 +2643,8 @@ const RoomStudent = {
 
   exitToMenu() {
     SessionManager.clear();
-    if (this.hostConn) this.hostConn.close();
+    LeaderboardSync.removeChannel(this.channel);
+    this.channel = null;
     location.reload();
   }
 };
